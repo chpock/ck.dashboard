@@ -47,8 +47,7 @@ function movingAverage(getWindowSize) {
                 sum += (v - old)
                 idx = (idx + 1) % size
             }
-            const result = sum / filled
-            return Math.abs(result) < 1e-5 ? 0 : result
+            return Math.trunc(sum / filled)
         },
     }
 }

@@ -263,8 +263,8 @@ Singleton {
                 writerate += diskData.writerate
             }
             root.updateInfoDisk({
-                "readrate": readAvgDiskRate.push(readrate),
-                "writerate": writeAvgDiskRate.push(writerate),
+                "readrate": readAvgDiskRate.push(Math.trunc(readrate)),
+                "writerate": writeAvgDiskRate.push(Math.trunc(writerate)),
             })
         })
     }
@@ -281,7 +281,7 @@ Singleton {
         }
         const numPart = val.slice(0, -1)
         const result = parseFloat(numPart)
-        return Math.round(result * Math.pow(1024, power))
+        return Math.trunc(result * Math.pow(1024, power))
     }
 
     function getInfoMounts() {
@@ -385,8 +385,8 @@ Singleton {
             if (!data) return
             cursorInfoNetwork = data.cursor
             const callbackData = {
-                rxrate: rxAvgNetworkRate.push(data.interfaces[0].rxrate),
-                txrate: rxAvgNetworkRate.push(data.interfaces[0].rxrate),
+                rxrate: rxAvgNetworkRate.push(Math.trunc(data.interfaces[0].rxrate)),
+                txrate: rxAvgNetworkRate.push(Math.trunc(data.interfaces[0].rxrate)),
             }
             root.updateInfoNetwork(callbackData)
         })
