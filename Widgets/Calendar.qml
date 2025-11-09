@@ -2,18 +2,54 @@ import Quickshell
 import QtQuick
 import QtQuick.Shapes
 import qs
-import qs.Components as Component
+import qs.Elements as E
 import qs.Providers as Provider
 
 Base {
     id: root
 
-    readonly property var dayNames: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+    readonly property var theme: QtObject {
+        readonly property var heading: QtObject {
+            readonly property var buttons: QtObject {
+                property color color: Theme.palette.silver
+                property color colorHover: Theme.palette.belizehole
+            }
+        }
+        readonly property var days: QtObject {
+            readonly property var names: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+            property int fontSize: Theme.text.fontSize.small
+            readonly property var color: QtObject {
+                property color name: Theme.palette.belizehole
+                property color weekend: Theme.palette.pomegranate
+                property color normal: Theme.text.color.normal
+                property color today: Theme.text.color.normal
+                property color other: Theme.text.color.grey
+                property color border: Theme.palette.belizehole
+            }
+            readonly property var background: QtObject {
+                property color normal: 'transparent'
+                property color today: Theme.palette.belizehole
+            }
+            readonly property var fontWeight: QtObject {
+                property int normal: Font.Normal
+                property int today: Font.Bold
+            }
+            readonly property var spacing: QtObject {
+                property int horizontal: 3
+                property int vertical: 3
+            }
+            readonly property var padding: QtObject {
+                property int top: 3
+                property int bottom: 3
+                property int left: 3
+                property int right: 3
+            }
+        }
+    }
+
     readonly property int firstDayOfWeek: {
         return Qt.locale().firstDayOfWeek % 7
     }
-
-    readonly property int dayBackgroundSpacing: 3
 
     function changeMonth(direction) {
         if (direction === 0) {
@@ -43,12 +79,11 @@ Base {
         implicitHeight: Math.max(headerIconLeft.implicitHeight, headerText.implicitHeight, headerIconCurrent.implicitHeight, headerIconRight.implicitHeight)
         implicitWidth: parent.width
 
-        Text {
+        E.Text {
             id: headerIconLeft
             anchors.left: parent.left
             text: "\u25C0"
-            color: headerIconLeftHover.hovered ? Theme.palette.belizehole : Theme.text.grey
-            font.pixelSize: Theme.text.size
+            color: headerIconLeftHover.hovered ? root.theme.heading.buttons.colorHover : root.theme.heading.buttons.color
             visible: root.isHovered
             HoverHandler {
                 id: headerIconLeftHover
@@ -60,23 +95,23 @@ Base {
             }
         }
 
-        Text {
+        E.TextTitle {
             id: headerText
             text: Qt.formatDate(calendar.currentDate, "MMMM, yyyy")
             horizontalAlignment: Text.AlignHCenter
-            anchors.left: headerIconLeft.right
-            anchors.right: headerIconRight.left
+            hasColon: false
+            hasSpace: false
+            anchors.left: parent.left
+            anchors.right: parent.right
             color: Theme.text.normal
-            font.pixelSize: Theme.text.size
         }
 
-        Text {
+        E.Text {
             id: headerIconCurrent
             anchors.right: headerIconRight.left
-            anchors.rightMargin: 8
+            anchors.rightMargin: wordSpacing * 3
             text: "\u2B24"
-            color: headerIconCurrentHover.hovered ? Theme.palette.belizehole : Theme.text.grey
-            font.pixelSize: Theme.text.size
+            color: headerIconCurrentHover.hovered ? root.theme.heading.buttons.colorHover : root.theme.heading.buttons.color
             visible: root.isHovered
             HoverHandler {
                 id: headerIconCurrentHover
@@ -88,12 +123,11 @@ Base {
             }
         }
 
-        Text {
+        E.Text {
             id: headerIconRight
             anchors.right: parent.right
             text: "\u25B6"
-            color: headerIconRightHover.hovered ? Theme.palette.belizehole : Theme.text.grey
-            font.pixelSize: Theme.text.size
+            color: headerIconRightHover.hovered ? root.theme.heading.buttons.colorHover : root.theme.heading.buttons.color
             visible: root.isHovered
             HoverHandler {
                 id: headerIconRightHover
@@ -119,11 +153,11 @@ Base {
         }
         property int dayCellWidth: 0
 
-        width: (dayCellWidth + root.dayBackgroundSpacing * 2) * columns + columnSpacing * (columns - 1)
+        width: (dayCellWidth + root.theme.days.padding.left + root.theme.days.padding.right) * columns + columnSpacing * (columns - 1)
         columns: 7
         rows: 7
-        rowSpacing: 2
-        columnSpacing: 4
+        rowSpacing: root.theme.days.spacing.vertical
+        columnSpacing: root.theme.days.spacing.horizontal
         anchors.horizontalCenter: parent.horizontalCenter
 
         Repeater {
@@ -138,33 +172,44 @@ Base {
                     date.setDate(date.getDate() + index - 7)
                     return date
                 }
+
                 readonly property string dayText:
                     isDayName
-                        ? dayNames[(index + root.firstDayOfWeek) % 7]
+                        ? root.theme.days.names[(index + root.firstDayOfWeek) % 7]
                         : dayDate.getDate()
+
                 readonly property bool isWeekend: dayDate.getDay() % 6 === 0
                 readonly property bool isCurrentMonth: dayDate.getMonth() == calendar.currentDate.getMonth()
                 readonly property bool isCurrentWeekDay: dayDate.getDay() == calendar.currentDate.getDay()
                 readonly property bool isToday: dayDate.toDateString() === systemClock.date.toDateString()
+
                 readonly property color dayColor: {
                     if (isDayName)
-                        return Theme.palette.belizehole
+                        return root.theme.days.color.name
                     if (!isCurrentMonth)
-                        return Theme.palette.asbestos
+                        return root.theme.days.color.other
                     if (isToday)
-                        return Theme.palette.clouds
+                        return root.theme.days.color.today
                     if (isWeekend)
-                        return Theme.palette.alizarin
-                    return Theme.palette.clouds
+                        return root.theme.days.color.weekend
+                    return root.theme.days.color.normal
                 }
-                readonly property color dayBackgroundColor: isToday && isCurrentMonth ? Theme.palette.belizehole : 'transparent'
-                readonly property int dayFontWeight: (isDayName && isCurrentWeekDay) || isToday ? Font.Bold : Font.Normal
+
+                readonly property color dayBackgroundColor:
+                    isToday && isCurrentMonth
+                        ? root.theme.days.background.today
+                        : root.theme.days.background.normal
+
+                readonly property int dayFontWeight:
+                    (isDayName && isCurrentWeekDay) || isToday
+                        ? root.theme.days.fontWeight.today
+                        : root.theme.days.fontWeight.normal
 
                 width: dayBackground.width
                 height: dayBackground.height
                 color: 'transparent'
                 border.width: hover.hovered && !isDayName ? 1 : 0
-                border.color: Theme.palette.belizehole
+                border.color: root.theme.days.color.border
 
                 HoverHandler {
                     id: hover
@@ -173,19 +218,23 @@ Base {
                 Rectangle {
                     id: dayBackground
 
-                    width: calendar.dayCellWidth + root.dayBackgroundSpacing * 2
-                    height: dayText.implicitHeight
+                    width: calendar.dayCellWidth + root.theme.days.padding.left + root.theme.days.padding.right
+                    height: dayText.implicitHeight + root.theme.days.padding.top + root.theme.days.padding.bottom
                     color: day.dayBackgroundColor
-                    // border.width: 1
 
-                    Text {
+                    E.Text {
                         id: dayText
-                        anchors.horizontalCenter: parent.horizontalCenter
                         width: calendar.dayCellWidth
                         text: day.dayText
                         color: day.dayColor
-                        font.weight: day.dayFontWeight
+                        capitalOnly: true
+                        fontSize: root.theme.days.fontSize
+                        fontWeight: day.dayFontWeight
                         horizontalAlignment: Text.AlignRight
+                        anchors.right: parent.right
+                        anchors.rightMargin: root.theme.days.padding.right
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: root.theme.days.padding.bottom
                         onImplicitWidthChanged: {
                             if (implicitWidth > calendar.dayCellWidth)
                                 calendar.dayCellWidth = implicitWidth

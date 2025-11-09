@@ -9,26 +9,20 @@ Item {
 
     property real maxValue: 100.0
     property real value: 0
-    property real paddingTop: Theme.bar.padding
-    property real paddingBottom: Theme.bar.padding
 
-    implicitHeight: Theme.bar.height + paddingTop + paddingBottom
+    implicitHeight: Theme.bar.height
 
     // Background (empty part)
     Rectangle {
         id: background
-        anchors.topMargin: parent.paddingTop
-        anchors.bottomMargin: parent.paddingBottom
         anchors.fill: parent
-        color: Theme.bar.background
+        color: Theme.bar.inactive
         height: Theme.bar.height
     }
 
     // Foreground (filled part)
     Rectangle {
         id: foreground
-        anchors.topMargin: parent.paddingTop
-        anchors.bottomMargin: parent.paddingBottom
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom

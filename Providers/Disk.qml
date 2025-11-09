@@ -3,12 +3,20 @@ pragma Singleton
 import Quickshell
 import QtQuick
 import qs.Services as Service
+import qs
 
 Singleton {
     id: root
 
+    readonly property alias mountModel: mountModelObj
+    property var mountModelList: []
+
+    readonly property var rate: QtObject {
+        property real read: 0
+        property real write: 0
+    }
+
     signal updateDiskRate(var info)
-    signal updateMounts(var info)
 
     Component.onCompleted: {
         Service.Dgop.subscribe('infoDisk')
@@ -23,10 +31,52 @@ Singleton {
     Connections {
         target: Service.Dgop
         function onUpdateInfoDisk(data) {
+            root.rate.read = data.readrate
+            root.rate.write = data.writerate
             root.updateDiskRate(data)
         }
         function onUpdateInfoMounts(data) {
-            root.updateMounts(data)
+            const foundMounts = []
+            for (let item of data) {
+                const mount = data.mount
+                const idx = mountModelList.indexOf(mount)
+                if (idx === -1) {
+                    mountModelObj.append(data)
+                    mountModelList.push(mount)
+                } else {
+                    mountModelObj.set(idx, data)
+                }
+                foundMounts.push(mount)
+            }
+            if (foundMounts.length !== mountModelList.length) {
+                for (let i = mountModelList.length - 1; i >= 0; --i) {
+                    if (foundMounts.indexOf(mountModelList[i]) === -1)
+                        mountModelObj.remove(i, 1)
+                }
+                mountModelList = foundMounts
+            }
+        }
+    }
+
+    ListModel {
+        id: mountModelObj
+        Component.onCompleted: {
+            let stateCount = SettingsData.stateGet('Provider.Disk.ListModel.count', 0)
+            const sampleData = {
+                'device': '',
+                'mount': '',
+                'fstype': '',
+                'size': 0,
+                'used': 0,
+                'avail': 0,
+            }
+            while (stateCount-- > 0) {
+                append(sampleData)
+                root.mountModelList.push('')
+            }
+        }
+        onCountChanged: {
+            SettingsData.stateSet('Provider.Disk.ListModel.count', count)
         }
     }
 

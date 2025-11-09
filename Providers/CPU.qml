@@ -7,6 +7,14 @@ import qs.Services as Service
 Singleton {
     id: root
 
+    readonly property var cpu: QtObject {
+        property string model: "Unknown"
+        property int cores: 0
+        property real frequency: 0
+        property real usage: 0
+        property real temperature: 0
+    }
+
     signal updateCPU(var info)
     signal updateCPUCores(var info)
 
@@ -24,8 +32,11 @@ Singleton {
     Connections {
         target: Service.Dgop
         function onUpdateInfoCPU(data) {
-            if (cpuModel !== data.model) cpuModel = data.model
-            if (cpuCores !== data.count) cpuCores = data.count
+            root.cpu.model = data.model
+            root.cpu.cores = data.count
+            root.cpu.frequency = data.frequency
+            root.cpu.usage = data.usage
+            root.cpu.temperature = data.temperature
 
             const infoCPU = {
                 frequency: data.frequency,

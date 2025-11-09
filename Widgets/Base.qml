@@ -8,13 +8,13 @@ Rectangle {
     default property alias content: content.data
 
     border {
-        color: Theme.border.color
-        width: Theme.border.width
+        color: Theme.base.border.color
+        width: Theme.base.border.width
     }
-    color: Theme.background
+    color: Theme.base.background
 
     width: parent.width
-    implicitHeight: content.implicitHeight + Theme.padding.vertical * 2 + Theme.border.width * 2
+    implicitHeight: content.implicitHeight + Theme.base.padding.vertical * 2 + Theme.base.border.width * 2
 
     HoverHandler {
         id: hh
@@ -24,11 +24,11 @@ Rectangle {
 
     Column {
         id: content
-        y: Theme.padding.vertical + Theme.border.width
-        spacing: Theme.spacing
+        y: Theme.base.padding.vertical + Theme.base.border.width
+        spacing: Theme.base.spacing.horizontal
         width: parent.width
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.margins: Theme.padding.horizontal + Theme.border.width
+        anchors.margins: Theme.base.padding.horizontal + Theme.base.border.width
     }
 }

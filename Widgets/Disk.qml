@@ -1,64 +1,62 @@
 import Quickshell
 import QtQuick
 import qs
-import qs.Components as Component
+import qs.Elements as E
 import qs.Providers as Provider
-import '../utils.js' as Utils
 
 Base {
     id: root
 
+    readonly property var theme: QtObject {
+        readonly property var mount: QtObject {
+            property int spacing: 0
+            readonly property var bar: QtObject {
+                readonly property var padding: QtObject {
+                    property int top: 2
+                    property int bottom: 3
+                }
+            }
+            property var levels: ({
+                'good':     [ 0, 79 ],
+                'warning':  [80, 94 ],
+                'critical': [95, 100],
+            })
+        }
+        readonly property var rate: QtObject {
+            readonly property var preset: QtObject {
+                property var label: "normal"
+                property var value: "details"
+            }
+            readonly property var read: QtObject {
+                property color color: Theme.palette.belizehole
+                property string label: "R:"
+            }
+            readonly property var write: QtObject {
+                property color color: Theme.palette.greensea
+                property string label: "W:"
+            }
+            readonly property var graph: QtObject {
+                property int maxValue: 1024 * 10
+            }
+            property int spacing: 2
+        }
+    }
+
     Connections {
         target: Provider.Disk
         function onUpdateDiskRate(data) {
-            const readRate = data.readrate
-            const readRateText = Utils.formatBytes(readRate, 4) + '/s'
-            const writeRate = data.writerate
-            const writeRateText = Utils.formatBytes(writeRate, 4) + '/s'
-            // rates[0].rate
-            rates.children[0].children[1].text = readRateText
-            // rates[0].graph
-            rates.children[0].children[2].pushValue(readRate)
-            // rates[1].rate
-            rates.children[1].children[1].text = writeRateText
-            // rates[1].graph
-            rates.children[1].children[2].pushValue(writeRate)
-        }
-        function onUpdateMounts(data) {
-            const dataCount = data.length
-            for (let i = 0; i < dataCount; ++i) {
-                const item = data[i]
-                const model = {
-                    mountPoint: item.mount,
-                    fsType: item.fstype,
-                    total: Utils.formatBytes(item.size, 4),
-                    free: Utils.formatBytes(item.avail, 4),
-                    freePercent: Math.round(100 - 100 * item.avail / item.size),
-                }
-                if (dataModelVolumes.count <= i) {
-                    dataModelVolumes.append(model)
-                } else {
-                    dataModelVolumes.set(i, model)
-                }
-            }
+            rates.children[0].children[2].pushValue(data.readrate)
+            rates.children[1].children[2].pushValue(data.writerate)
         }
     }
-
-    ListModel {
-        id: dataModelVolumes
-    }
-
-    property var dataModelRate: [
-        { labelText: 'R:', color: Theme.palette.greensea, },
-        { labelText: 'W:', color: Theme.palette.orange,  },
-    ]
 
     Repeater {
-        model: dataModelVolumes
+        model: Provider.Disk.mountModel
 
         Column {
             anchors.left: parent.left
             anchors.right: parent.right
+            spacing: root.theme.mount.spacing
 
             required property var modelData
 
@@ -67,23 +65,20 @@ Base {
                 anchors.left: parent.left
                 anchors.right: parent.right
 
-                readonly property var mountPoint: parent.modelData.mountPoint
-                readonly property var freePercent: parent.modelData.freePercent
-
-                Text {
+                E.TextTitle {
                     id: textMountPoint
-                    text: parent.mountPoint
-                    font.pixelSize: Theme.text.size
-                    color: Theme.text.normal
+                    text: modelData.mount
+                    hasSpace: false
+                    hasColon: false
                     anchors.left: parent.left
                     anchors.right: textFreePercent.left
                 }
 
-                Text {
+                E.TextPercent {
                     id: textFreePercent
-                    text: Math.round(parent.freePercent) + '%'
-                    font.pixelSize: Theme.text.size
-                    color: Theme.text.normal
+                    valueCurrent: modelData.used
+                    valueMax: modelData.size
+                    levels: root.theme.mount.levels
                     anchors.right: parent.right
                 }
             }
@@ -93,106 +88,101 @@ Base {
                 anchors.left: parent.left
                 anchors.right: parent.right
 
-                readonly property var fsType: parent.modelData.fsType
-                readonly property var free: parent.modelData.free
-                readonly property var total: parent.modelData.total
-
-                Text {
+                E.Text {
                     id: textFsType
-                    text: '(' + parent.fsType + ')'
+                    text: modelData.fstype !== '' ? '(' + modelData.fstype + ')' : ''
                     anchors.left: parent.left
-                    anchors.right: textFree.left
-                    font.pixelSize: Theme.text.sizeS
-                    color: Theme.text.grey
+                    anchors.bottom: textFree.bottom
+                    preset: 'details'
                 }
 
-                Text {
+                E.TextBytes {
                     id: textFree
-                    text: parent.free
-                    anchors.right: textDiv.left
-                    anchors.rightMargin: 3
-                    font.pixelSize: Theme.text.sizeS
-                    color: Theme.text.normal
-                }
-
-                Text {
-                    id: textDiv
-                    text: '/'
+                    value: modelData.avail
+                    precision: 3
                     anchors.right: textTotal.left
-                    anchors.rightMargin: 3
-                    font.pixelSize: Theme.text.sizeS
-                    color: Theme.text.normal
                 }
 
-                Text {
+                E.TextBytes {
                     id: textTotal
-                    text: parent.total
+                    value: modelData.size
+                    precision: 3
+                    prefix: ' / '
                     anchors.right: parent.right
-                    font.pixelSize: Theme.text.sizeS
-                    color: Theme.text.normal
+                    anchors.bottom: textFree.bottom
+                    preset: 'details'
                 }
+
             }
 
-            Component.Bar {
-                id: cpuUsageBar
-                color: Theme.palette.belizehole
+            Item {
+                implicitHeight: fsUsageBar.implicitHeight + root.theme.mount.bar.padding.top + root.theme.mount.bar.padding.bottom
+                implicitWidth: fsUsageBar.implicitWidth
                 anchors.left: parent.left
                 anchors.right: parent.right
-                value: parent.modelData.freePercent
-                paddingTop: 5
-                // paddingBottom: 50
+
+                E.Bar {
+                    id: fsUsageBar
+                    color: Theme.palette.belizehole
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.topMargin: root.theme.mount.bar.padding.top
+                    anchors.right: parent.right
+                    value: textFreePercent.calcValue
+                }
             }
 
         }
 
-        
     }
 
     Row {
         id: rates
 
         width: parent.width
-        spacing: Theme.padding.vertical * 3
+        spacing: Theme.base.spacing.vertical
 
         Repeater {
-            model: dataModelRate
+            model: ['read', 'write']
 
             Item {
-                implicitHeight: Math.max(label.implicitHeight, rate.implicitHeight) + 3 + graph.implicitHeight
-                implicitWidth: parent.width / 2 - Theme.padding.vertical
+                required property var modelData
 
-                Text {
+                implicitHeight: Math.max(label.implicitHeight, rate.implicitHeight) + root.theme.rate.spacing + graph.implicitHeight
+                implicitWidth: (parent.width - parent.spacing) / 2
+
+                E.Text {
                     id: label
-                    text: modelData.labelText
+                    text: root.theme.rate[modelData].label
+                    color: root.theme.rate[modelData].color
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    color: Theme.text.normal
-                    font.pixelSize: Theme.text.size
+                    preset: root.theme.rate.preset.label
                 }
 
-                Text {
+                E.TextBytes {
                     id: rate
-                    text: ''
                     anchors.right: parent.right
                     anchors.bottom: label.bottom
-                    color: Theme.text.grey
-                    font.pixelSize: Theme.text.sizeS
+                    preset: root.theme.rate.preset.value
+                    value: Provider.Disk.rate[modelData]
+                    isRate: true
                 }
 
-                Component.GraphTimeseries {
+                E.GraphTimeseries {
                     id: graph
-                    color: modelData.color
+                    color: root.theme.rate[modelData].color
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     maxValueAuto: true
-                    maxValue: 1024 * 10
+                    maxValue: root.theme.rate.graph.maxValue
                 }
 
             }
 
         }
-        
+
     }
 
 }

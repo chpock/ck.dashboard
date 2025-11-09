@@ -14,7 +14,7 @@ Item {
     property real minValue: 0.0
     property bool maxValueAuto: false
 
-	property int maxPoints: 50
+    property int maxPoints: 50
     readonly property var calculateMax: Utils.calculateMax(() => maxPoints)
 
     implicitHeight: Theme.graph.height

@@ -1,18 +1,46 @@
 import Quickshell
 import QtQuick
 import qs
-import qs.Components as Component
+import qs.Elements as E
 import qs.Providers as Provider
 
 Base {
     id: root
 
+    readonly property var theme: QtObject {
+        readonly property var meter: QtObject {
+            property int paddingTitle: 5
+            readonly property var bar: QtObject {
+                readonly property var padding: QtObject {
+                    property int top: 2
+                    property int bottom: 3
+                }
+            }
+            property var levels: ({
+                'ignore':   [ 0,  5 ],
+                'good':     [ 6, 69 ],
+                'warning':  [70, 89 ],
+                'critical': [90, 100],
+            })
+        }
+        readonly property var processList: QtObject {
+            readonly property var padding: QtObject {
+                property int top: 5
+                property int bottom: 0
+            }
+            property var levels: ({
+                'ignore':   [ 0,  5 ],
+                'good':     [ 6, 69 ],
+                'warning':  [70, 89 ],
+                'critical': [90, 100],
+            })
+        }
+    }
+
     Connections {
         target: Provider.CPU
         function onUpdateCPU(data) {
             cpuUsageGraph.pushValue(data.usage)
-            cpuUsageBar.value = data.usage
-            cpuUsageValue.text = Math.round(data.usage) + '%'
         }
         function onUpdateCPUCores(data) {
             cpuCoresUsageGraph.pushValues(data.coreUsage)
@@ -22,64 +50,77 @@ Base {
     Connections {
         target: Provider.Process
         function onUpdateProcessesByCPU(data) {
-            const processListData = data.map((item) => Object.assign({}, item, {
-                value: (Math.round(item.value * 99) / 100) + '%'
-            }))
-            processList.pushValues(processListData)
+            processList.pushValues(data)
         }
     }
 
     Item {
         id: cpuUsage
-        implicitHeight: Math.max(cpuUsageLabel.implicitHeight, cpuUsageValue.implicitHeight) + cpuUsageBar.implicitHeight
+        implicitHeight: Math.max(cpuUsageLabel.implicitHeight, cpuUsageValue.implicitHeight) +
+            root.theme.meter.bar.padding.top + root.theme.meter.bar.padding.bottom +
+            cpuUsageBar.implicitHeight
         anchors.left: parent.left
         anchors.right: parent.right
 
-        Text {
+        E.TextTitle {
             id: cpuUsageLabel
-            text: 'CPU:'
-            color: Theme.text.normal
+            text: 'CPU'
             anchors.left: parent.left
-            font.pixelSize: Theme.text.size
         }
 
-        Text {
+        E.TextPercent {
             id: cpuUsageValue
-            text: '0%'
-            color: Theme.text.normal
+            value: Provider.CPU.cpu.usage
+            levels: root.theme.meter.levels
             anchors.right: parent.right
-            font.pixelSize: Theme.text.size
         }
 
-        Component.Bar {
+        E.Bar {
             id: cpuUsageBar
             color: Theme.palette.belizehole
+            value: Provider.CPU.cpu.usage
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
+            anchors.bottomMargin: root.theme.meter.bar.padding.bottom
         }
     }
 
     Row {
         height: Math.max(cpuUsageGraph.implicitHeight, cpuCoresUsageGraph.implicitHeight)
         width: parent.width
-        spacing: Theme.padding.vertical * 2
+        spacing: Theme.base.spacing.vertical
 
-        Component.GraphTimeseries {
+        E.GraphTimeseries {
             id: cpuUsageGraph
             color: Theme.palette.belizehole
-            width: parent.width / 2 - Theme.padding.vertical
+            width: (parent.width - parent.spacing) / 2
         }
 
-        Component.GraphBars {
+        E.GraphBars {
             id: cpuCoresUsageGraph
             color: Theme.palette.belizehole
-            width: parent.width / 2 - Theme.padding.vertical
+            width: (parent.width - parent.spacing) / 2
         }
     }
 
-    Component.ProcessList {
-        id: processList
+    Item {
+        implicitHeight: processList.implicitHeight + root.theme.processList.padding.top + root.theme.processList.padding.bottom
+        implicitWidth: processList.implicitWidth
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        E.ProcessList {
+            id: processList
+            y: root.theme.processList.padding.top
+
+            E.TextPercent {
+                value: modelValue
+                levels: root.theme.processList.levels
+                preset: Theme.processList.preset
+                horizontalAlignment: Text.AlignRight
+            }
+        }
     }
 
 }
