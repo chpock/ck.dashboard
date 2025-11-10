@@ -310,12 +310,14 @@ Timer {
         })
     }
 
-    function splitCommand(fullCommand) {
-        let splitIdx = fullCommand.indexOf(" ")
+    function splitCommand(originalCommand, fullCommand) {
+        let splitIdx = fullCommand.indexOf(' ')
         let command = (splitIdx === -1) ? fullCommand : fullCommand.slice(0, splitIdx)
-        let args = (splitIdx === -1) ? "" : fullCommand.slice(splitIdx + 1)
-        if (command.charAt(0) === "/") {
-            splitIdx = command.lastIndexOf("/")
+        let args = (splitIdx === -1) ? '' : fullCommand.slice(splitIdx + 1)
+        if (command === '/proc/self/exe') {
+            command = originalCommand
+        } else if (command.charAt(0) === '/') {
+            splitIdx = command.lastIndexOf('/')
             if (splitIdx !== -1) {
                 command = command.slice(splitIdx + 1)
             }
@@ -336,7 +338,7 @@ Timer {
             const callbackData = data.data.filter(function(item) {
                 return item.command !== 'dgop'
             }).map(function(item) {
-                let splitCommand = root.splitCommand(item.fullCommand)
+                let splitCommand = root.splitCommand(item.command, item.fullCommand)
                 return {
                     'command': splitCommand[0],
                     'args': splitCommand[1],
@@ -359,7 +361,7 @@ Timer {
             if (!data) return
             cursorProcessesByRAM = data.cursor
             const callbackData = data.data.map(function(item) {
-                let splitCommand = root.splitCommand(item.fullCommand)
+                let splitCommand = root.splitCommand(item.command, item.fullCommand)
                 return {
                     'command': splitCommand[0],
                     'args': splitCommand[1],
