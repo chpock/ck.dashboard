@@ -13,6 +13,7 @@ Item {
     property var color: undefined
     property int fontWeight: -1
     property int fontSize: -1
+    property bool fontStrikeout: false
     property alias horizontalAlignment: textObj.horizontalAlignment
     property alias elide: textObj.elide
 
@@ -33,6 +34,7 @@ Item {
         color: root.color !== undefined ? root.color : Theme.preset[root.preset !== '' ? root.preset : 'normal'].color
         font.pixelSize: root.fontSize !== -1 ? root.fontSize : Theme.preset[root.preset !== '' ? root.preset : 'normal'].fontSize
         font.weight: root.fontWeight !== -1 ? root.fontWeight : Theme.preset[root.preset !== '' ? root.preset : 'normal'].fontWeight
+        font.strikeout: root.fontStrikeout
         anchors.left: parent.left
         anchors.right: parent.right
     }
