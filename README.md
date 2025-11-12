@@ -14,6 +14,7 @@
 Currently available components:
 
 - Calendar
+- List of the nearest events from **khal** calendar (optional, only if **khal** is installed and configured)
 - Network activity monitor
 - Memory monitor (RAM and swap) with a list of top memory-consuming processes
 - CPU usage monitor with a list of active processes
@@ -24,6 +25,7 @@ Currently available components:
 - [Quickshell](https://quickshell.org/)
 - Qt6 with charts support
 - [dgop](https://github.com/AvengeMedia/dgop)
+- *(optional)* [khal](https://khal.readthedocs.io/en/latest/)
 
 ## Installation
 
