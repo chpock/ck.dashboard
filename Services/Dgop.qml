@@ -68,7 +68,7 @@ Singleton {
         onTriggered: dgopProc.running = true
     }
 
-Timer {
+    Timer {
         id: startupTimer
         interval: 500
         running: true
