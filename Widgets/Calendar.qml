@@ -451,9 +451,9 @@ Base {
                         if (diff === 0) {
                             return "Today"
                         } else if (diff === 1) {
-                            return "Yesterday"
-                        } else if (diff === -1) {
                             return "Tomorrow"
+                        } else if (diff === -1) {
+                            return "Yesterday"
                         }
                         return date.toLocaleDateString(Qt.locale(), Locale.ShortFormat)
                     }
