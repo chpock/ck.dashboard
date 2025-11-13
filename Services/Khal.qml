@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -137,9 +138,9 @@ Singleton {
                     console.warn('khal:', "could not detect 'timeformat:' or 'dateformat:' in 'khal printformats' output")
                     return
                 }
-                dateformat = parseDateFormat(dateformat)
+                dateformat = root.parseDateFormat(dateformat)
                 if (dateformat === '') return
-                timeformat = parseTimeFormat(timeformat)
+                timeformat = root.parseTimeFormat(timeformat)
                 if (timeformat === '') return
                 root.correctDatetimeEpoch = !dateformat.includes('yyyy') && dateformat.includes('yy')
                 root.formatDatetime = dateformat + '@##@##@' + timeformat
@@ -152,7 +153,9 @@ Singleton {
                 console.warn('[Service.Khal/startupProc]', 'stderr:', line)
             }
         }
-        onExited: exitCode => {
+        // qmllint disable signal-handler-parameters
+        onExited: (exitCode, _) => {
+        // qmllint enable signal-handler-parameters
             if (exitCode !== 0) {
                 console.error('[Service.Khal/startupProc]', 'khal finished with exit code:', exitCode)
                 startupProc.success = false
@@ -252,7 +255,9 @@ Singleton {
                 console.warn('[Service.Khal/checkProc]', 'stderr:', line)
             }
         }
-        onExited: exitCode => {
+        // qmllint disable signal-handler-parameters
+        onExited: (exitCode, _) => {
+        // qmllint enable signal-handler-parameters
             if (exitCode !== 0) {
                 console.error('[Service.Khal/checkProc]', 'khal finished with exit code:', exitCode)
             } else {
@@ -266,7 +271,9 @@ Singleton {
         id: checkVdirsyncerProc
         command: ['vdirsyncer', 'showconfig']
         running: false
-        onExited: exitCode => {
+        // qmllint disable signal-handler-parameters
+        onExited: (exitCode, _) => {
+        // qmllint enable signal-handler-parameters
             if (exitCode !== 0) {
                 console.info('[Service.Khal/checkVdirsyncerProc]', 'vdirsyncer: unavailable')
                 root.vdirsyncerAvailable = false
@@ -294,7 +301,9 @@ Singleton {
                 refreshVdirsyncerProc.output += '[stderr] ' + line + "\n"
             }
         }
-        onExited: exitCode => {
+        // qmllint disable signal-handler-parameters
+        onExited: (exitCode, _) => {
+        // qmllint enable signal-handler-parameters
             if (exitCode !== 0) {
                 Quickshell.execDetached([
                     "notify-send",

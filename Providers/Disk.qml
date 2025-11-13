@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -39,21 +40,21 @@ Singleton {
             const foundMounts = []
             for (let item of data) {
                 const mount = data.mount
-                const idx = mountModelList.indexOf(mount)
+                const idx = root.mountModelList.indexOf(mount)
                 if (idx === -1) {
                     mountModelObj.append(data)
-                    mountModelList.push(mount)
+                    root.mountModelList.push(mount)
                 } else {
                     mountModelObj.set(idx, data)
                 }
                 foundMounts.push(mount)
             }
-            if (foundMounts.length !== mountModelList.length) {
-                for (let i = mountModelList.length - 1; i >= 0; --i) {
-                    if (foundMounts.indexOf(mountModelList[i]) === -1)
+            if (foundMounts.length !== root.mountModelList.length) {
+                for (let i = root.mountModelList.length - 1; i >= 0; --i) {
+                    if (foundMounts.indexOf(root.mountModelList[i]) === -1)
                         mountModelObj.remove(i, 1)
                 }
-                mountModelList = foundMounts
+                root.mountModelList = foundMounts
             }
         }
     }

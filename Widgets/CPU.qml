@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import Quickshell
 import QtQuick
 import qs
@@ -133,7 +135,10 @@ Base {
             y: root.theme.processList.padding.top
 
             E.TextPercent {
+                property var modelValue
+                // qmllint disable unqualified
                 value: modelValue
+                // qmllint enable unqualified
                 levels: root.theme.processList.levels
                 preset: Theme.processList.preset
                 horizontalAlignment: Text.AlignRight

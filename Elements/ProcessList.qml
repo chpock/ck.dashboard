@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import qs
 import qs.Elements as E
 
@@ -72,8 +73,10 @@ Item {
         }
 
         delegate: Item {
+            id: item
             width: lv.width
             height: Math.max(colCommand.implicitHeight, colValue.implicitHeight)
+            required property var model
 
             Row {
                 id: row
@@ -82,7 +85,7 @@ Item {
 
                 E.Text {
                     id: colCommand
-                    text: model.command
+                    text: item.model.command
                     preset: Theme.processList.preset
                     color: Theme.processList.colors.command
                     elide: Text.ElideRight
@@ -91,7 +94,7 @@ Item {
 
                 E.Text {
                     id: colArgs
-                    text: model.args
+                    text: item.model.args
                     preset: Theme.processList.preset
                     color: Theme.processList.colors.args
                     elide: Text.ElideRight
@@ -101,7 +104,7 @@ Item {
 
                 E.Text {
                     id: colValue
-                    text: model.value
+                    text: item.model.value
                     preset: Theme.processList.preset
                     color: Theme.processList.colors.value
                     horizontalAlignment: Text.AlignRight
@@ -110,12 +113,18 @@ Item {
                 }
 
                 Loader {
+                    readonly property var modelValue: item.model.value
                     id: colValueLoader
                     width: lv.colValueWidth
                     visible: root.valueRenderer !== null
                     active: root.valueRenderer !== null
-                    sourceComponent: valueRenderer
-                    property var modelValue: model.value
+                    sourceComponent: root.valueRenderer
+                    Binding {
+                        target: colValueLoader.item
+                        property: "modelValue"
+                        value: colValueLoader.modelValue
+                        when: colValueLoader.status === Loader.Ready
+                    }
                 }
             }
         }

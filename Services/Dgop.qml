@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -12,7 +13,7 @@ Singleton {
 
     property bool running: false
 
-    readonly property QtObject subscribers: QtObject {
+    readonly property var subscribers: QtObject {
         property int infoCPU: 0
         property int infoMemory: 0
         property int infoNetwork: 0
@@ -51,7 +52,9 @@ Singleton {
         //     }
         // }
 
-        onExited: exitCode => {
+        // qmllint disable signal-handler-parameters
+        onExited: (exitCode, _) => {
+        // qmllint enable signal-handler-parameters
             console.warn('dgop service exited with code:', exitCode)
             if (!restartTimer.running) {
                 console.log('restart dgop in 5 seconds...')
@@ -81,63 +84,63 @@ Singleton {
         interval: 500
         running: true
         repeat: true
-        onTriggered: doHealthCheck()
+        onTriggered: root.doHealthCheck()
     }
 
     Timer {
         id: infoCPU
         interval: 1000
         repeat: true
-        running: root.running && subscribers.infoCPU > 0
-        onTriggered: getInfoCPU()
+        running: root.running && root.subscribers.infoCPU > 0
+        onTriggered: root.getInfoCPU()
     }
 
     Timer {
         id: infoMemory
         interval: 1000
         repeat: true
-        running: root.running && subscribers.infoMemory > 0
-        onTriggered: getInfoMemory()
+        running: root.running && root.subscribers.infoMemory > 0
+        onTriggered: root.getInfoMemory()
     }
 
     Timer {
         id: infoNetwork
         interval: 1000
         repeat: true
-        running: root.running && subscribers.infoNetwork > 0
-        onTriggered: getInfoNetwork()
+        running: root.running && root.subscribers.infoNetwork > 0
+        onTriggered: root.getInfoNetwork()
     }
 
     Timer {
         id: infoDisk
         interval: 1000
         repeat: true
-        running: root.running && subscribers.infoDisk > 0
-        onTriggered: getInfoDisk()
+        running: root.running && root.subscribers.infoDisk > 0
+        onTriggered: root.getInfoDisk()
     }
 
     Timer {
         id: processesByCPU
         interval: 5000
         repeat: true
-        running: root.running && subscribers.processesByCPU > 0
-        onTriggered: getProcessesByCPU()
+        running: root.running && root.subscribers.processesByCPU > 0
+        onTriggered: root.getProcessesByCPU()
     }
 
     Timer {
         id: processesByRAM
         interval: 5000
         repeat: true
-        running: root.running && subscribers.processesByRAM > 0
-        onTriggered: getProcessesByRAM()
+        running: root.running && root.subscribers.processesByRAM > 0
+        onTriggered: root.getProcessesByRAM()
     }
 
     Timer {
         id: infoMounts
         interval: 10000
         repeat: true
-        running: root.running && subscribers.infoMounts > 0
-        onTriggered: getInfoMounts()
+        running: root.running && root.subscribers.infoMounts > 0
+        onTriggered: root.getInfoMounts()
     }
 
     function triggerAll() {

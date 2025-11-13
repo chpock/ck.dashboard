@@ -165,6 +165,7 @@ Base {
             y: root.theme.processList.padding.top
 
             E.TextBytes {
+                property var modelValue
                 value: modelValue
                 precision: 3
                 preset: Theme.processList.preset

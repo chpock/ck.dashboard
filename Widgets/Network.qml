@@ -1,4 +1,5 @@
-import Quickshell
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs
 import qs.Elements as E
@@ -65,6 +66,7 @@ Base {
             model: Provider.WirelessDevices.ifaceModel
 
             Item {
+                id: ifaceRow
                 required property var modelData
 
                 implicitHeight: Math.max(ifaceObj.implicitHeight)
@@ -73,7 +75,7 @@ Base {
 
                 E.TextTitle {
                     id: ifaceObj
-                    text: modelData.iface
+                    text: ifaceRow.modelData.iface
                     anchors.left: parent.left
                     onImplicitWidthChanged: {
                         if (implicitWidth > wireless.ifaceWidth)
@@ -83,7 +85,7 @@ Base {
 
                 E.Text {
                     id: ssidObj
-                    text: modelData.ssid
+                    text: ifaceRow.modelData.ssid
                     preset: root.theme.ifaceList.details.preset
                     anchors.left: ifaceObj.right
                     anchors.right: parent.right
@@ -94,11 +96,11 @@ Base {
 
                 E.TextPercent {
                     id: signal
-                    value: modelData.signal
+                    value: ifaceRow.modelData.signal
                     levels: root.theme.ifaceList.signal.levels
                     preset: root.theme.ifaceList.signal.preset
                     anchors.right: parent.right
-                    visible: modelData.isConnected
+                    visible: ifaceRow.modelData.isConnected
                 }
             }
         }
@@ -114,15 +116,17 @@ Base {
             model: ['download', 'upload']
 
             Item {
+                id: rateItem
+
                 required property var modelData
 
                 implicitHeight: Math.max(label.implicitHeight, rate.implicitHeight) + root.theme.rate.spacing + graph.implicitHeight
-                implicitWidth: (parent.width - parent.spacing) / 2
+                implicitWidth: (parent.width - rates.spacing) / 2
 
                 E.Text {
                     id: label
-                    text: root.theme.rate[modelData].label
-                    color: root.theme.rate[modelData].color
+                    text: root.theme.rate[rateItem.modelData].label
+                    color: root.theme.rate[rateItem.modelData].color
                     anchors.left: parent.left
                     anchors.top: parent.top
                     preset: root.theme.rate.preset.label
@@ -133,13 +137,13 @@ Base {
                     anchors.right: parent.right
                     anchors.bottom: label.bottom
                     preset: root.theme.rate.preset.value
-                    value: Provider.Network.rate[modelData]
+                    value: Provider.Network.rate[rateItem.modelData]
                     isRate: true
                 }
 
                 E.GraphTimeseries {
                     id: graph
-                    color: root.theme.rate[modelData].color
+                    color: root.theme.rate[rateItem.modelData].color
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom

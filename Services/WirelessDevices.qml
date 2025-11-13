@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -41,14 +42,16 @@ Singleton {
                     root.available()
                 }
                 root.updateListIface(ifacesListNew)
-                ifacesList = ifacesListNew
+                root.ifacesList = ifacesListNew
             }
         }
     }
 
     Instantiator {
-        model: ifacesList
+        model: root.ifacesList
         Scope {
+            id: iface
+            required property var modelData
             Timer {
                 id: getIfaceInfoTimer
                 interval: 1000
@@ -58,7 +61,7 @@ Singleton {
             }
             Process {
                 id: getIfaceInfoProc
-                command: ["iw", "dev", modelData, "link"]
+                command: ["iw", "dev", iface.modelData, "link"]
                 running: true
                 stderr: SplitParser {
                     splitMarker: "\n"
@@ -96,10 +99,12 @@ Singleton {
                             "ssid": ssid,
                             "isConnected": isConnected,
                         }
-                        root.updateInfoIface(modelData, callbackData)
+                        root.updateInfoIface(iface.modelData, callbackData)
                     }
                 }
-                onExited: exitCode => {
+                // qmllint disable signal-handler-parameters
+                onExited: (exitCode, _) => {
+                // qmllint enable signal-handler-parameters
                     if (exitCode !== 0) {
                         console.warn("command 'iw' finished with exit code:", exitCode)
                     }

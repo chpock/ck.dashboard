@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -27,7 +28,7 @@ Singleton {
         id: systemClock
         precision: SystemClock.Minutes
         onMinutesChanged: {
-            updateModels()
+            root.updateModels()
         }
     }
 
@@ -35,7 +36,7 @@ Singleton {
         target: Service.Khal
         function onUpdateEvents(data) {
             root.eventsAll = data
-            updateModels()
+            root.updateModels()
         }
         function onAvailable() {
             root.running = true

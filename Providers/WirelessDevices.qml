@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -15,7 +16,7 @@ Singleton {
     Connections {
         target: Service.WirelessDevices
         function onUpdateInfoIface(name, data) {
-            const idx = ifaceModelList.indexOf(name)
+            const idx = root.ifaceModelList.indexOf(name)
             // If we don't have this interface in ifaceModelObj
             if (idx === -1) return
             ifaceModelObj.set(idx, {
@@ -25,7 +26,7 @@ Singleton {
             })
         }
         function onUpdateListIface(data) {
-            ifaceModelList = []
+            root.ifaceModelList = []
             for (let i = 0; i < data.length; ++i) {
                 const iface = data[i]
                 const modelData = {
@@ -34,7 +35,7 @@ Singleton {
                     "signal": 0,
                     "isConnected": false,
                 }
-                ifaceModelList.push(iface)
+                root.ifaceModelList.push(iface)
                 if (i < ifaceModelObj.count) {
                     ifaceModelObj.set(i, modelData)
                 } else {

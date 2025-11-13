@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import Quickshell
@@ -38,9 +39,9 @@ Singleton {
     ]
 
     readonly property var color: QtObject {
-        property color ok: palette.nephritis
-        property color warning: palette.sunflower
-        property color error: palette.alizarin
+        property color ok: root.palette.nephritis
+        property color warning: root.palette.sunflower
+        property color error: root.palette.alizarin
     }
 
     readonly property var base: QtObject {
@@ -73,29 +74,29 @@ Singleton {
 
     readonly property var preset: QtObject {
         readonly property var title: Preset {
-            color: palette.amethyst
+            color: root.palette.amethyst
             fontWeight: Font.Medium
         }
         readonly property var normal: Preset {
         }
         readonly property var details: Preset {
-            color: text.color.grey
-            fontSize: text.fontSize.small
+            color: root.text.color.grey
+            fontSize: root.text.fontSize.small
         }
     }
 
     component Preset: QtObject {
-        property int fontSize: text.fontSize.normal
+        property int fontSize: root.text.fontSize.normal
         property int fontWeight: Font.Normal
-        property color color: text.color.normal
+        property color color: root.text.color.normal
     }
 
     readonly property var thresholds: QtObject {
         readonly property var colors: QtObject {
-            property color ignore: palette.asbestos
-            property color good: color.ok
-            property color warning: color.warning
-            property color critical: color.error
+            property color ignore: root.palette.asbestos
+            property color good: root.color.ok
+            property color warning: root.color.warning
+            property color critical: root.color.error
         }
         property var levels: ({
             'ignore':   [ 0, 10],
@@ -120,7 +121,7 @@ Singleton {
     }
 
     readonly property var bar: QtObject {
-        property color active: palette.belizehole
+        property color active: root.palette.belizehole
         property color inactive: Qt.rgba(1.0, 1.0, 1.0, 0.15)
         property int height: 4
     }
@@ -135,10 +136,10 @@ Singleton {
         }
         readonly property var bar: QtObject {
             property var thresholds: ([
-                { 'value': 10, 'color': palette.asbestos  },
-                { 'value': 70, 'color': palette.nephritis },
-                { 'value': 95, 'color': palette.carrot    },
-                { 'value': -1, 'color': palette.alizarin  },
+                { 'value': 10, 'color': root.palette.asbestos  },
+                { 'value': 70, 'color': root.palette.nephritis },
+                { 'value': 95, 'color': root.palette.carrot    },
+                { 'value': -1, 'color': root.palette.alizarin  },
             ])
         }
     }

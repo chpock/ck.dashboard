@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import QtGraphs
 import qs
 import '../utils.js' as Utils
@@ -77,7 +78,6 @@ Item {
                 lineVisible: false
                 gridVisible: true
                 subGridVisible: false
-                max: w.maxPoints
             }
 
             axisY: ValueAxis {

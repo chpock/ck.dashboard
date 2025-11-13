@@ -1,4 +1,5 @@
-import Quickshell
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import qs
 import qs.Elements as E
@@ -54,6 +55,7 @@ Base {
         model: Provider.Disk.mountModel
 
         Column {
+            id: mount
             anchors.left: parent.left
             anchors.right: parent.right
             spacing: root.theme.mount.spacing
@@ -67,7 +69,7 @@ Base {
 
                 E.TextTitle {
                     id: textMountPoint
-                    text: modelData.mount
+                    text: mount.modelData.mount
                     hasSpace: false
                     hasColon: false
                     anchors.left: parent.left
@@ -76,8 +78,8 @@ Base {
 
                 E.TextPercent {
                     id: textFreePercent
-                    valueCurrent: modelData.used
-                    valueMax: modelData.size
+                    valueCurrent: mount.modelData.used
+                    valueMax: mount.modelData.size
                     levels: root.theme.mount.levels
                     anchors.right: parent.right
                 }
@@ -90,7 +92,7 @@ Base {
 
                 E.Text {
                     id: textFsType
-                    text: modelData.fstype !== '' ? '(' + modelData.fstype + ')' : ''
+                    text: mount.modelData.fstype !== '' ? '(' + mount.modelData.fstype + ')' : ''
                     anchors.left: parent.left
                     anchors.bottom: textFree.bottom
                     preset: 'details'
@@ -98,14 +100,14 @@ Base {
 
                 E.TextBytes {
                     id: textFree
-                    value: modelData.avail
+                    value: mount.modelData.avail
                     precision: 3
                     anchors.right: textTotal.left
                 }
 
                 E.TextBytes {
                     id: textTotal
-                    value: modelData.size
+                    value: mount.modelData.size
                     precision: 3
                     prefix: ' / '
                     anchors.right: parent.right
@@ -146,15 +148,17 @@ Base {
             model: ['read', 'write']
 
             Item {
+                id: rateItem
+
                 required property var modelData
 
                 implicitHeight: Math.max(label.implicitHeight, rate.implicitHeight) + root.theme.rate.spacing + graph.implicitHeight
-                implicitWidth: (parent.width - parent.spacing) / 2
+                implicitWidth: (parent.width - rates.spacing) / 2
 
                 E.Text {
                     id: label
-                    text: root.theme.rate[modelData].label
-                    color: root.theme.rate[modelData].color
+                    text: root.theme.rate[rateItem.modelData].label
+                    color: root.theme.rate[rateItem.modelData].color
                     anchors.left: parent.left
                     anchors.top: parent.top
                     preset: root.theme.rate.preset.label
@@ -165,13 +169,13 @@ Base {
                     anchors.right: parent.right
                     anchors.bottom: label.bottom
                     preset: root.theme.rate.preset.value
-                    value: Provider.Disk.rate[modelData]
+                    value: Provider.Disk.rate[rateItem.modelData]
                     isRate: true
                 }
 
                 E.GraphTimeseries {
                     id: graph
-                    color: root.theme.rate[modelData].color
+                    color: root.theme.rate[rateItem.modelData].color
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom

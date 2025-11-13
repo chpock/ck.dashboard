@@ -1,6 +1,7 @@
+pragma ComponentBehavior: Bound
+
 import Quickshell
 import QtQuick
-import QtQuick.Shapes
 import qs
 import qs.Elements as E
 import qs.Providers as Provider
@@ -214,9 +215,10 @@ Base {
             Rectangle {
                 id: day
 
+                required property int index
                 readonly property bool isDayName: index < 7 ? true : false
                 readonly property date dayDate: {
-                    const date = new Date(parent.startDate)
+                    const date = new Date(calendar.startDate)
                     date.setDate(date.getDate() + index - 7)
                     return date
                 }
@@ -418,6 +420,7 @@ Base {
         model: Provider.Calendar.eventsUpcomingModel
 
         Item {
+            id: event
             required property var modelData
 
             visible: Provider.Calendar.running
@@ -437,8 +440,8 @@ Base {
             E.Text {
                 id: icon
                 text: {
-                    if (modelData.eventId === '') return ''
-                    const startDiff = (modelData.start.getTime() - systemClockTimeMinutes.date.getTime()) / 10 ** 3
+                    if (event.modelData.eventId === '') return ''
+                    const startDiff = (event.modelData.start.getTime() - systemClockTimeMinutes.date.getTime()) / 10 ** 3
                     if (startDiff <= 0) {
                         // Event is in progress, return "Hourglass Not Done" icon
                         return "\u23F3 "
@@ -457,7 +460,6 @@ Base {
             }
 
             Item {
-
                 id: title
                 implicitHeight: Math.max(titleText.implicitHeight, titleIcon.implicitHeight)
                 implicitWidth: titleText.implicitWidth + titleIcon.implicitWidth
@@ -467,11 +469,11 @@ Base {
 
                 E.Text {
                     id: titleText
-                    text: modelData.title
+                    text: event.modelData.title
                     elide: Text.ElideRight
                     anchors.left: parent.left
                     width: Math.min(implicitWidth, parent.width - titleIcon.implicitWidth)
-                    fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
+                    fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
                 }
 
                 E.Text {
@@ -479,22 +481,22 @@ Base {
                     anchors.left: titleText.right
                     anchors.right: parent.right
                     text:
-                        modelData.eventId === ''
+                        event.modelData.eventId === ''
                             ? ''
-                            : modelData.calendarId in root.calendarColors
+                            : event.modelData.calendarId in root.calendarColors
                                 ? " \u25CF "
                                 : " \u25CB "
                     color:
-                        modelData.calendarId in root.calendarColors
-                            ? Theme.palette[root.calendarColors[modelData.calendarId]]
+                        event.modelData.calendarId in root.calendarColors
+                            ? Theme.palette[root.calendarColors[event.modelData.calendarId]]
                             : titleText.color
-                    visible: (modelData.calendarId in root.calendarColors) || root.isHovered
+                    visible: (event.modelData.calendarId in root.calendarColors) || root.isHovered
                     HoverHandler {
                         acceptedButtons: Qt.NoButton
                         cursorShape: Qt.PointingHandCursor
                     }
                     TapHandler {
-                        onTapped: changeCalendarColor(modelData.calendarId)
+                        onTapped: root.changeCalendarColor(event.modelData.calendarId)
                     }
                 }
 
@@ -509,23 +511,23 @@ Base {
                     hideIconHover.hovered
                         ? root.theme.heading.buttons.colorHover
                         : root.theme.heading.buttons.color
-                visible: root.isHovered && modelData.eventId !== ''
+                visible: root.isHovered && event.modelData.eventId !== ''
                 HoverHandler {
                     id: hideIconHover
                     acceptedButtons: Qt.NoButton
                     cursorShape: Qt.PointingHandCursor
                 }
                 TapHandler {
-                    onTapped: Provider.Calendar.eventsUpcomingToggleEventVisibility(modelData.eventId)
+                    onTapped: Provider.Calendar.eventsUpcomingToggleEventVisibility(event.modelData.eventId)
                 }
             }
 
             E.Text {
                 id: details
                 preset: 'details'
-                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
+                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
                 text: {
-                    if (modelData.eventId === '') return ''
+                    if (event.modelData.eventId === '') return ''
 
                     function getNiceDate(date, diff) {
                         if (diff === 0) {
@@ -541,24 +543,24 @@ Base {
                     const today = new Date(systemClockDate.date.getFullYear(),
                     systemClockDate.date.getMonth(), systemClockDate.date.getDate())
 
-                    const startDay = new Date(modelData.start.getFullYear(),
-                        modelData.start.getMonth(), modelData.start.getDate())
+                    const startDay = new Date(event.modelData.start.getFullYear(),
+                        event.modelData.start.getMonth(), event.modelData.start.getDate())
                     const startDiff = Math.floor((startDay - today) / 86400000)
 
-                    const endDay = new Date(modelData.end.getFullYear(),
-                        modelData.end.getMonth(), modelData.end.getDate())
+                    const endDay = new Date(event.modelData.end.getFullYear(),
+                        event.modelData.end.getMonth(), event.modelData.end.getDate())
                     const endDiff = Math.floor((endDay - today) / 86400000)
 
                     const result = getNiceDate(startDay, startDiff) + ', ' +
-                        modelData.start.toLocaleTimeString(Qt.locale(), Locale.ShortFormat) +
+                        event.modelData.start.toLocaleTimeString(Qt.locale(), Locale.ShortFormat) +
                         ' - '
 
                     if (startDiff === endDiff) {
-                        return result + modelData.end.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
+                        return result + event.modelData.end.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
                     }
 
                     return result + getNiceDate(endDay, endDiff) + ', ' +
-                        modelData.end.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
+                        event.modelData.end.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
                 }
                 anchors.left: title.left
                 elide: Text.ElideRight
@@ -569,8 +571,8 @@ Base {
             E.Text {
                 id: leftTime
                 text: {
-                    if (modelData.eventId === '') return ''
-                    let startDiff = (modelData.start.getTime() - systemClockTimeSeconds.date.getTime()) / 10 ** 3
+                    if (event.modelData.eventId === '') return ''
+                    let startDiff = (event.modelData.start.getTime() - systemClockTimeSeconds.date.getTime()) / 10 ** 3
                     const sign = startDiff < 0 ? '-' : ''
                     startDiff = Math.abs(startDiff)
                     const hours = Math.floor(startDiff / 3600)
@@ -590,7 +592,7 @@ Base {
                 anchors.right: parent.right
                 anchors.top: title.bottom
                 anchors.topMargin: root.theme.events.spacing
-                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
+                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
             }
 
         }

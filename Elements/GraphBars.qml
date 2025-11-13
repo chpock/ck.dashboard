@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import QtGraphs
 import qs
 
@@ -13,10 +14,10 @@ Item {
     implicitHeight: Theme.graph.height
 
     function pushValues(values) {
-        if (barSeries.barSets.length > values.length) {
-            barSeries.removeMultiple(0, barSeries.barSets.length - values.length);
-        } else if (barSeries.barSets.length < values.length) {
-            for (let i = barSeries.barSets.length; i < values.length; ++i) {
+        if (barSeries.count > values.length) {
+            barSeries.removeMultiple(0, barSeries.count - values.length);
+        } else if (barSeries.count < values.length) {
+            for (let i = barSeries.count; i < values.length; ++i) {
                 const set = Qt.createQmlObject('import QtGraphs; BarSet {}', barSeries)
                 barSeries.append(set);
             }
