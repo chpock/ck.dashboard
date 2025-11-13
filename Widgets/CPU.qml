@@ -9,7 +9,15 @@ Base {
 
     readonly property var theme: QtObject {
         readonly property var meter: QtObject {
-            property int paddingTitle: 5
+            readonly property var temperature: QtObject {
+                property int offset: 50
+                property var levels: ({
+                    'ignore':   [ 0,  59 ],
+                    'good':     [ 60, 74 ],
+                    'warning':  [ 75, 89 ],
+                    'critical': [ 90, 200],
+                })
+            }
             readonly property var bar: QtObject {
                 readonly property var padding: QtObject {
                     property int top: 2
@@ -66,6 +74,16 @@ Base {
             id: cpuUsageLabel
             text: 'CPU'
             anchors.left: parent.left
+        }
+
+        E.TextTemperature {
+            id: ramUsageTemperature
+            value: Provider.CPU.cpu.temperature
+            levels: root.theme.meter.temperature.levels
+            anchors.right: parent.right
+            anchors.rightMargin: root.theme.meter.temperature.offset
+            anchors.bottom: cpuUsageLabel.bottom
+            preset: 'details'
         }
 
         E.TextPercent {
