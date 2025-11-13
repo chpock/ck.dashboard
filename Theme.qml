@@ -30,6 +30,13 @@ Singleton {
         property color asbestos:     '#7f8c8d'
     }
 
+    property var paletteColorNames: [
+        'turquoise', 'greensea', 'emerland', 'nephritis', 'peterriver',
+        'belizehole', 'amethyst', 'wisteria', 'wetasphalt', 'midnightblue',
+        'sunflower', 'orange', 'carrot', 'pumpkin', 'alizarin',
+        'pomegranate', 'clouds', 'silver', 'concrete', 'asbestos',
+    ]
+
     readonly property var color: QtObject {
         property color ok: palette.nephritis
         property color warning: palette.sunflower

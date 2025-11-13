@@ -179,6 +179,7 @@ Singleton {
             '--json', 'title',
             '--json', 'start-date', '--json', 'start-time',
             '--json', 'end-date', '--json', 'end-time',
+            '--json', 'calendar',
         ]
         running: false
         stdout: SplitParser {
@@ -210,6 +211,7 @@ Singleton {
                     let title = event['title']
                     let start = event['start-date'] + '@##@##@' + event['start-time']
                     let end = event['end-date'] + '@##@##@' + event['end-time']
+                    let calendarId = event.hasOwnProperty('calendar') ? event['calendar'] : 'unknown'
 
                     const eventId = Qt.md5(start + end + title)
 
@@ -234,10 +236,11 @@ Singleton {
                     if (root.correctDatetimeEpoch) end.setFullYear(end.getFullYear() + 100)
 
                     checkProc.output.push({
-                        'eventId': eventId,
-                        'start':   start,
-                        'end':     end,
-                        'title':   title,
+                        'calendarId': calendarId,
+                        'eventId':    eventId,
+                        'title':      title,
+                        'start':      start,
+                        'end':        end,
                     })
 
                 }

@@ -14,10 +14,11 @@ Singleton {
 
     property var eventsAll: []
     property var sampleData: {
-        'start': new Date(),
-        'end': new Date(),
-        'title': '',
-        'eventId': '',
+        'calendarId': '',
+        'eventId':    '',
+        'title':      '',
+        'start':      new Date(),
+        'end':        new Date(),
     }
     property var eventsUpcomingHiddenItems: []
     property bool eventUpcomingShowHidden: false

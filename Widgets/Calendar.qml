@@ -63,8 +63,32 @@ Base {
         }
     }
 
+    property var calendarColors
+    property bool loaded: false
+
     readonly property int firstDayOfWeek: {
         return Qt.locale().firstDayOfWeek % 7
+    }
+
+    function changeCalendarColor(calendarId) {
+
+        let colorIdx = -1
+        if (calendarId in calendarColors) {
+            const colorNameOld = calendarColors[calendarId]
+            colorIdx = Theme.paletteColorNames.indexOf(colorNameOld)
+        }
+        colorIdx += 1
+        if (colorIdx >= Theme.paletteColorNames.length) {
+            // Re-create an object to trigger changes in bindings
+            const calendarColorsNew = Object.assign({}, calendarColors)
+            delete calendarColorsNew[calendarId]
+            calendarColors = calendarColorsNew
+        } else {
+            const colorNameNew = Theme.paletteColorNames[colorIdx]
+            // Re-create an object to trigger changes in bindings
+            calendarColors = Object.assign({}, calendarColors, { [calendarId]: colorNameNew })
+        }
+
     }
 
     function changeMonth(direction) {
@@ -432,26 +456,60 @@ Base {
                 anchors.topMargin: root.theme.events.padding.top
             }
 
-            E.Text {
+            Item {
+
                 id: title
-                text: modelData.title
-                elide: Text.ElideRight
+                implicitHeight: Math.max(titleText.implicitHeight, titleIcon.implicitHeight)
+                implicitWidth: titleText.implicitWidth + titleIcon.implicitWidth
                 anchors.left: icon.right
                 anchors.right: root.isHovered ? hideIcon.left : parent.right
                 anchors.verticalCenter: icon.verticalCenter
-                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
+
+                E.Text {
+                    id: titleText
+                    text: modelData.title
+                    elide: Text.ElideRight
+                    anchors.left: parent.left
+                    width: Math.min(implicitWidth, parent.width - titleIcon.implicitWidth)
+                    fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
+                }
+
+                E.Text {
+                    id: titleIcon
+                    anchors.left: titleText.right
+                    anchors.right: parent.right
+                    text:
+                        modelData.eventId === ''
+                            ? ''
+                            : modelData.calendarId in root.calendarColors
+                                ? " \u25CF "
+                                : " \u25CB "
+                    color:
+                        modelData.calendarId in root.calendarColors
+                            ? Theme.palette[root.calendarColors[modelData.calendarId]]
+                            : titleText.color
+                    visible: (modelData.calendarId in root.calendarColors) || root.isHovered
+                    HoverHandler {
+                        acceptedButtons: Qt.NoButton
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                    TapHandler {
+                        onTapped: changeCalendarColor(modelData.calendarId)
+                    }
+                }
+
             }
 
             E.Text {
                 id: hideIcon
                 anchors.right: parent.right
                 anchors.verticalCenter: icon.verticalCenter
-                text: "\u{1F441}"
+                text: " \u{1F441}"
                 color:
                     hideIconHover.hovered
                         ? root.theme.heading.buttons.colorHover
                         : root.theme.heading.buttons.color
-                visible: root.isHovered
+                visible: root.isHovered && modelData.eventId !== ''
                 HoverHandler {
                     id: hideIconHover
                     acceptedButtons: Qt.NoButton
@@ -536,6 +594,21 @@ Base {
             }
 
         }
+    }
+
+    Component.onCompleted: {
+        try {
+            calendarColors = JSON.parse(SettingsData.stateGet('Widget.Calendar.calendarColors', '{}'))
+        }
+        catch (e) {
+            calendarColors = {}
+        }
+        loaded = true
+    }
+
+    onCalendarColorsChanged: {
+        if (!loaded) return
+        SettingsData.stateSet('Widget.Calendar.calendarColors', JSON.stringify(calendarColors))
     }
 
 }
