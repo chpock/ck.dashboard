@@ -91,7 +91,7 @@ Singleton {
             if (eventsUpcomingModel.count > 0) {
                 eventsUpcomingModel.remove(eventsUpcomingModel.count - 1, 1)
             }
-        } else if (direction > 0) {
+        } else if (direction > 0 && eventsUpcomingModel.count < 10) {
             eventsUpcomingModel.append(sampleData)
             updateModels()
         }
