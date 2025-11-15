@@ -61,6 +61,13 @@ Base {
                 }
             }
             property int spacing: 2
+            readonly property var timer: QtObject {
+                readonly property var color: QtObject {
+                    property color normal: Theme.text.color.normal
+                    property color soon: Theme.palette.carrot
+                    property color inProgress: Theme.palette.pomegranate
+                }
+            }
         }
     }
 
@@ -584,21 +591,23 @@ Base {
             }
 
             E.Text {
+                readonly property var eventTime: event.modelData.start.getTime()
+                readonly property var currentTime: systemClockTimeSeconds.date.getTime()
+                readonly property int eventTimeDiff: Math.abs((eventTime - currentTime) / 10 ** 3)
+                readonly property bool isInProgress: currentTime >= eventTime ? true : false
                 id: leftTime
                 text: {
                     if (event.modelData.eventId === '') return ''
-                    let startDiff = (event.modelData.start.getTime() - systemClockTimeSeconds.date.getTime()) / 10 ** 3
-                    const sign = startDiff < 0 ? '-' : ''
-                    startDiff = Math.abs(startDiff)
-                    const hours = Math.floor(startDiff / 3600)
-                    const minutes = Math.floor((startDiff % 3600) / 60)
+                    const sign = isInProgress && eventTimeDiff > 0 ? '-' : ''
+                    const hours = Math.floor(eventTimeDiff / 3600)
+                    const minutes = Math.floor((eventTimeDiff % 3600) / 60)
                     if (hours > 0) {
                         return `${sign}${hours}h ${minutes}m`
                     }
-                    if (minutes > 10) {
+                    if (minutes > 9) {
                         return `${sign}${minutes}m`
                     }
-                    const seconds = startDiff % 60
+                    const seconds = eventTimeDiff % 60
                     if (minutes > 0) {
                         return `${sign}${minutes}m ${seconds}s`
                     }
@@ -608,6 +617,12 @@ Base {
                 anchors.top: title.bottom
                 anchors.topMargin: root.theme.events.spacing
                 fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
+                color:
+                    isInProgress
+                        ? root.theme.events.timer.color.inProgress
+                        : eventTimeDiff < root.theme.events.alarmOffsetSeconds
+                            ? root.theme.events.timer.color.soon
+                            : root.theme.events.timer.color.normal
             }
 
         }
