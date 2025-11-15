@@ -7,6 +7,9 @@ import QtQuick
 Singleton {
     id: root
 
+    readonly property alias symbolsFont: symbolsFontObj
+    readonly property alias normalFont: normalFontObj
+
     // Flat UI Color Palette - https://www.webnots.com/flat-ui-color-codes/
     readonly property var palette: QtObject {
         property color turquoise:    '#1abc9c'
@@ -152,6 +155,16 @@ Singleton {
             property color value: Theme.text.color.normal
         }
         property int spacing: 4
+    }
+
+    FontLoader {
+        id: symbolsFontObj
+        source: Qt.resolvedUrl("./assets/fonts/material-design-icons/MaterialSymbolsSharp[FILL,GRAD,opsz,wght].ttf")
+    }
+
+    FontLoader {
+        id: normalFontObj
+        source: Qt.resolvedUrl("./assets/fonts/noto/NotoSans-Regular.ttf")
     }
 
 }

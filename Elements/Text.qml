@@ -16,7 +16,10 @@ Item {
     property int fontWeight: -1
     property int fontSize: -1
     property bool fontStrikeout: false
+    property var fontFamily: Theme.normalFont.name
+    property var fontVariableAxes: ({})
     property alias horizontalAlignment: textObj.horizontalAlignment
+    property alias verticalAlignment: textObj.verticalAlignment
     property alias elide: textObj.elide
 
     implicitHeight: textMetrics.tightBoundingRect.height
@@ -37,6 +40,8 @@ Item {
         font.pixelSize: root.fontSize !== -1 ? root.fontSize : Theme.preset[root.preset !== '' ? root.preset : 'normal'].fontSize
         font.weight: root.fontWeight !== -1 ? root.fontWeight : Theme.preset[root.preset !== '' ? root.preset : 'normal'].fontWeight
         font.strikeout: root.fontStrikeout
+        font.family: root.fontFamily
+        font.variableAxes: root.fontVariableAxes
         anchors.left: parent.left
         anchors.right: parent.right
     }
