@@ -6,7 +6,12 @@ import qs
 Item {
     id: root
 
-    property bool capitalOnly: false
+    enum HeightMode {
+        Capitals = 0,
+        Normal = 1,
+        Content = 2
+    }
+
     property string preset: ""
 
     readonly property int wordSpacing: Math.round(spaceMetrics.boundingRect.width - textMetrics.boundingRect.width)
@@ -19,21 +24,34 @@ Item {
     property var fontFamily: Theme.normalFont.name
     property var fontVariableAxes: ({})
     property alias horizontalAlignment: textObj.horizontalAlignment
-    property alias verticalAlignment: textObj.verticalAlignment
+    property var verticalAlignment: undefined
     property alias elide: textObj.elide
+    property int heightMode: 1
 
     implicitHeight: textMetrics.tightBoundingRect.height
     implicitWidth:  textObj.implicitWidth
-    baselineOffset: textObj.baselineOffset
 
     // Rectangle {
     //     anchors.fill: parent
     //     color: 'blue'
     // }
 
+    // Rectangle {
+    //     width: textObj.width
+    //     height: textObj.height
+    //     x: textObj.x
+    //     y: textObj.y
+    //     color: {
+    //         if (root.debug) {
+    //             console.log("dbg:", height)
+    //         }
+    //         return '#54d70000'
+    //     }
+    // }
+
     Text {
         id: textObj
-        y: Math.round(textMetrics.tightBoundingRect.height - textMetrics.boundingRect.height) + (root.capitalOnly ? Math.ceil(fontMetrics.descent / 2) : 0)
+        height: textMetrics.tightBoundingRect.height
         textFormat: Text.PlainText
         wrapMode: Text.NoWrap
         color: root.color !== undefined ? root.color : Theme.preset[root.preset !== '' ? root.preset : 'normal'].color
@@ -42,6 +60,7 @@ Item {
         font.strikeout: root.fontStrikeout
         font.family: root.fontFamily
         font.variableAxes: root.fontVariableAxes
+        verticalAlignment: root.verticalAlignment === undefined ? Text.AlignVCenter : root.verticalAlignment
         anchors.left: parent.left
         anchors.right: parent.right
     }
@@ -49,7 +68,12 @@ Item {
     TextMetrics {
         id: textMetrics
         font: textObj.font
-        text: root.capitalOnly ? 'H%0' : 'H%0bdfhklgjpqy'
+        text:
+            root.heightMode === 2
+                ? textObj.text
+                : root.heightMode === 0
+                    ? 'H%0'
+                    : 'H%0bdfhklgjpqy'
     }
 
     TextMetrics {

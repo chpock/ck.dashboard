@@ -27,8 +27,8 @@ Base {
         }
         property int spacing: 5
         readonly property var padding: QtObject {
-            property int top: 13
-            property int bottom: 5
+            property int top: 0
+            property int bottom: 0
         }
     }
 
@@ -52,7 +52,7 @@ Base {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.topMargin: root.theme.padding.top
-            capitalOnly: true
+            heightMode: E.Text.Capitals
         }
 
         E.Text {
@@ -65,7 +65,7 @@ Base {
             color: root.theme.separator.color
             fontSize: root.theme.separator.fontSize
             fontWeight: root.theme.separator.fontWeight
-            capitalOnly: true
+            heightMode: E.Text.Capitals
         }
 
         E.Text {
@@ -78,7 +78,7 @@ Base {
             color: root.theme.minutes.color
             fontSize: root.theme.minutes.fontSize
             fontWeight: root.theme.minutes.fontWeight
-            capitalOnly: true
+            heightMode: E.Text.Capitals
         }
 
     }

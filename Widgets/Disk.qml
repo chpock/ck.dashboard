@@ -13,8 +13,8 @@ Base {
             property int spacing: 0
             readonly property var bar: QtObject {
                 readonly property var padding: QtObject {
-                    property int top: 2
-                    property int bottom: 3
+                    property int top: 3
+                    property int bottom: 2
                 }
             }
             property var levels: ({

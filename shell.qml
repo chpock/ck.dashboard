@@ -46,6 +46,9 @@ ShellRoot {
                 Widget.Disk {
                 }
 
+                Widget.AudioVolume {
+                }
+
                 Item {
                     Layout.fillHeight: true
                 }

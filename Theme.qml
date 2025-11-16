@@ -65,9 +65,9 @@ Singleton {
 
     readonly property var text: QtObject {
         readonly property var color: QtObject {
-            property color normal: palette.clouds
-            property color grey: palette.concrete
-            property color error: color.error
+            property color normal: root.palette.clouds
+            property color grey: root.palette.concrete
+            property color error: root.color.error
         }
         readonly property var fontSize: QtObject {
             property int normal: 14

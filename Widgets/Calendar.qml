@@ -289,7 +289,7 @@ Base {
                         width: calendar.dayCellWidth
                         text: day.dayText
                         color: day.dayColor
-                        capitalOnly: true
+                        heightMode: E.Text.Capitals
                         fontSize: root.theme.days.fontSize
                         fontWeight: day.dayFontWeight
                         horizontalAlignment: Text.AlignRight
