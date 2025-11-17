@@ -132,10 +132,11 @@ Base {
             id: headerHH
         }
 
-        E.Text {
+        E.Icon {
             id: headerIconLeft
+            icon: 'keyboard_double_arrow_left'
+            weight: 700
             anchors.left: parent.left
-            text: "\u25C0"
             color:
                 headerIconLeftHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -161,11 +162,11 @@ Base {
             anchors.right: parent.right
         }
 
-        E.Text {
+        E.Icon {
             id: headerIconCurrent
+            icon: 'today'
             anchors.right: headerIconRight.left
-            anchors.rightMargin: wordSpacing * 3
-            text: "\u2B24"
+            anchors.rightMargin: wordSpacing
             color:
                 headerIconCurrentHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -181,10 +182,11 @@ Base {
             }
         }
 
-        E.Text {
+        E.Icon {
             id: headerIconRight
+            icon: 'keyboard_double_arrow_right'
+            weight: 700
             anchors.right: parent.right
-            text: "\u25B6"
             color:
                 headerIconRightHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -320,10 +322,15 @@ Base {
         enabled: Provider.Calendar.running
     }
 
-
     Item {
         id: headerEvent
-        implicitHeight: Math.max(headerEventText.implicitHeight) +
+        implicitHeight: Math.max(
+                headerEventText.implicitHeight,
+                headerEventIconRefresh.implicitHeight,
+                headerEventIconToggleVisibility.implicitHeight,
+                headerEventIconPlus.implicitHeight,
+                headerEventIconMinus.implicitHeight
+            ) +
             root.theme.events.header.padding.top + root.theme.events.header.padding.bottom
         implicitWidth: parent.width
         visible: Provider.Calendar.running
@@ -343,13 +350,13 @@ Base {
             anchors.right: parent.right
         }
 
-        E.Text {
+        E.Icon {
             id: headerEventIconRefresh
+            icon: 'refresh'
             anchors.right: headerEventIconToggleVisibility.left
             anchors.rightMargin: wordSpacing * 3
             anchors.top: parent.top
             anchors.topMargin: root.theme.events.header.padding.top
-            text: "\u21BB"
             color:
                 headerEventIconRefreshHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -365,13 +372,13 @@ Base {
             }
         }
 
-        E.Text {
+        E.Icon {
             id: headerEventIconToggleVisibility
+            icon: 'visibility_lock'
             anchors.right: headerEventIconPlus.left
             anchors.rightMargin: wordSpacing * 3
             anchors.top: parent.top
             anchors.topMargin: root.theme.events.header.padding.top
-            text: "\u{1F441}"
             color:
                 headerEventIconToggleVisibilityHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -389,13 +396,13 @@ Base {
             }
         }
 
-        E.Text {
+        E.Icon {
             id: headerEventIconPlus
+            icon: 'add_circle'
             anchors.right: headerEventIconMinus.left
             anchors.rightMargin: wordSpacing
             anchors.top: parent.top
             anchors.topMargin: root.theme.events.header.padding.top
-            text: "\u2295"
             color:
                 headerEventIconPlusHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -411,12 +418,12 @@ Base {
             }
         }
 
-        E.Text {
+        E.Icon {
             id: headerEventIconMinus
+            icon: 'remove_circle'
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.topMargin: root.theme.events.header.padding.top
-            text: "\u2296"
             color:
                 headerEventIconMinusHover.hovered
                     ? root.theme.heading.buttons.colorHover
@@ -450,35 +457,38 @@ Base {
             anchors.left: parent.left
             anchors.right: parent.right
 
+            readonly property bool isHidden: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
+            readonly property bool isEmpty: modelData.eventId === ''
+
             readonly property alias isHovered: eventHH.hovered
             HoverHandler {
                 id: eventHH
             }
 
-            // ⏰ U+23F0 - Alarm Clock
-            // ⏳ U+23F3 - Hourglass Not Done
-            // ⌛ U+231B - Hourglass Done
-            // ⌚ U+231A - Watch
-            E.Text {
+            E.Icon {
                 id: icon
-                text: {
-                    if (event.modelData.eventId === '') return ''
-                    const startDiff = (event.modelData.start.getTime() - systemClockTimeMinutes.date.getTime()) / 10 ** 3
-                    if (startDiff <= 0) {
-                        // Event is in progress, return "Hourglass Not Done" icon
-                        return "\u23F3 "
-                    }
-                    // Event is not started yet
-                    if (startDiff <= root.theme.events.alarmOffsetSeconds) {
-                        // Alarm icon
-                        return "\u23F0 "
-                    }
-                    // Default icon is "Watch"
-                    return "\u231A "
-                }
+                readonly property real startDiff: (event.modelData.start.getTime() - systemClockTimeMinutes.date.getTime()) / 10 ** 3
+                readonly property bool isInProgress: startDiff < 0
+                readonly property bool isSoon: startDiff <= root.theme.events.alarmOffsetSeconds
+                icon:
+                    isInProgress
+                        ? 'event_upcoming'
+                        : isSoon
+                            ? 'alarm'
+                            : 'event'
+                color:
+                    isInProgress
+                        ? root.theme.events.timer.color.inProgress
+                        : isSoon
+                            ? root.theme.events.timer.color.soon
+                            : root.theme.events.timer.color.normal
+                grade: -25
+                filled: true
+                weight: 400
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.topMargin: root.theme.events.padding.top
+                visible: !event.isEmpty
             }
 
             Item {
@@ -486,7 +496,9 @@ Base {
                 implicitHeight: Math.max(titleText.implicitHeight, titleIcon.implicitHeight)
                 implicitWidth: titleText.implicitWidth + titleIcon.implicitWidth
                 anchors.left: icon.right
+                anchors.leftMargin: titleText.wordSpacing * 2
                 anchors.right: event.isHovered ? hideIcon.left : parent.right
+                anchors.rightMargin: event.isHovered ? titleText.wordSpacing : undefined
                 anchors.verticalCenter: icon.verticalCenter
 
                 E.Text {
@@ -495,7 +507,7 @@ Base {
                     elide: Text.ElideRight
                     anchors.left: parent.left
                     width: Math.min(implicitWidth, parent.width - titleIcon.implicitWidth)
-                    fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
+                    fontStrikeout: event.isHidden
                 }
 
                 E.Text {
@@ -503,7 +515,7 @@ Base {
                     anchors.left: titleText.right
                     anchors.right: parent.right
                     text:
-                        event.modelData.eventId === ''
+                        event.isEmpty
                             ? ''
                             : event.modelData.calendarId in root.calendarColors
                                 ? " \u25CF "
@@ -514,6 +526,7 @@ Base {
                             : titleText.color
                     visible: (event.modelData.calendarId in root.calendarColors) || event.isHovered
                     HoverHandler {
+                        enabled: !event.isEmpty
                         acceptedButtons: Qt.NoButton
                         cursorShape: Qt.PointingHandCursor
                     }
@@ -524,16 +537,16 @@ Base {
 
             }
 
-            E.Text {
+            E.Icon {
                 id: hideIcon
+                icon: event.isHidden ? 'visibility' : 'visibility_off'
                 anchors.right: parent.right
                 anchors.verticalCenter: icon.verticalCenter
-                text: " \u{1F441}"
                 color:
                     hideIconHover.hovered
                         ? root.theme.heading.buttons.colorHover
                         : root.theme.heading.buttons.color
-                visible: event.isHovered && event.modelData.eventId !== ''
+                visible: event.isHovered && !event.isEmpty
                 HoverHandler {
                     id: hideIconHover
                     acceptedButtons: Qt.NoButton
@@ -547,9 +560,9 @@ Base {
             E.Text {
                 id: details
                 preset: 'details'
-                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
+                fontStrikeout: event.isHidden
                 text: {
-                    if (event.modelData.eventId === '') return ''
+                    if (event.isEmpty) return ''
 
                     function getNiceDate(date, diff) {
                         if (diff === 0) {
@@ -616,7 +629,7 @@ Base {
                 anchors.right: parent.right
                 anchors.top: title.bottom
                 anchors.topMargin: root.theme.events.spacing
-                fontStrikeout: Provider.Calendar.eventsUpcomingIsHidden(event.modelData.eventId)
+                fontStrikeout: event.isHidden
                 color:
                     isInProgress
                         ? root.theme.events.timer.color.inProgress

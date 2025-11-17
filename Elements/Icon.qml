@@ -7,7 +7,7 @@ import qs.Elements as E
 E.Text {
     id: root
 
-    property string icon: ""
+    required property string icon
     property bool filled: false
     property int grade: 200
     property int weight: filled ? 500 : 400
