@@ -68,6 +68,12 @@ Base {
                     property color inProgress: Theme.palette.pomegranate
                 }
             }
+            readonly property var farInFuture: QtObject {
+                // 4 hours
+                // 60 * 60 * 4 = 14400
+                property int excludeOffsetSeconds: 14400
+                property color color: Theme.palette.asbestos
+            }
         }
     }
 
@@ -120,6 +126,7 @@ Base {
     SystemClock {
         id: systemClockDate
         precision: SystemClock.Hours
+        readonly property string dateString: date.toDateString()
     }
 
     Item {
@@ -245,7 +252,7 @@ Base {
                 readonly property bool isWeekend: dayDate.getDay() % 6 === 0
                 readonly property bool isCurrentMonth: dayDate.getMonth() == calendar.currentDate.getMonth()
                 readonly property bool isCurrentWeekDay: dayDate.getDay() == calendar.currentDate.getDay()
-                readonly property bool isToday: dayDate.toDateString() === systemClockDate.date.toDateString()
+                readonly property bool isToday: dayDate.toDateString() === systemClockDate.dateString
 
                 readonly property color dayColor: {
                     if (isDayName)
@@ -460,6 +467,14 @@ Base {
             readonly property bool isHidden: Provider.Calendar.eventsUpcomingIsHidden(modelData.eventId)
             readonly property bool isEmpty: modelData.eventId === ''
 
+            readonly property real startDiff: (modelData.start.getTime() - systemClockTimeMinutes.date.getTime()) / 10 ** 3
+            readonly property bool isInProgress: startDiff < 0
+            readonly property bool isSoon: startDiff <= root.theme.events.alarmOffsetSeconds
+            readonly property bool isFarInFuture:
+                !isInProgress &&
+                modelData.start.toDateString() !== systemClockDate.dateString &&
+                startDiff > root.theme.events.farInFuture.excludeOffsetSeconds
+
             readonly property alias isHovered: eventHH.hovered
             HoverHandler {
                 id: eventHH
@@ -467,21 +482,20 @@ Base {
 
             E.Icon {
                 id: icon
-                readonly property real startDiff: (event.modelData.start.getTime() - systemClockTimeMinutes.date.getTime()) / 10 ** 3
-                readonly property bool isInProgress: startDiff < 0
-                readonly property bool isSoon: startDiff <= root.theme.events.alarmOffsetSeconds
                 icon:
-                    isInProgress
+                    event.isInProgress
                         ? 'event_upcoming'
-                        : isSoon
+                        : event.isSoon
                             ? 'alarm'
                             : 'event'
                 color:
-                    isInProgress
+                    event.isInProgress
                         ? root.theme.events.timer.color.inProgress
-                        : isSoon
+                        : event.isSoon
                             ? root.theme.events.timer.color.soon
-                            : root.theme.events.timer.color.normal
+                            : event.isFarInFuture
+                                ? root.theme.events.farInFuture.color
+                                : root.theme.events.timer.color.normal
                 grade: -25
                 filled: true
                 weight: 400
@@ -508,6 +522,7 @@ Base {
                     anchors.left: parent.left
                     width: Math.min(implicitWidth, parent.width - titleIcon.implicitWidth)
                     fontStrikeout: event.isHidden
+                    color: event.isFarInFuture ? root.theme.events.farInFuture.color : undefined
                 }
 
                 E.Text {
@@ -635,7 +650,9 @@ Base {
                         ? root.theme.events.timer.color.inProgress
                         : eventTimeDiff < root.theme.events.alarmOffsetSeconds
                             ? root.theme.events.timer.color.soon
-                            : root.theme.events.timer.color.normal
+                            : event.isFarInFuture
+                                ? root.theme.events.farInFuture.color
+                                : root.theme.events.timer.color.normal
             }
 
         }
