@@ -615,6 +615,7 @@ Base {
                 anchors.left: title.left
                 overflow: E.Text.OverflowElide
                 anchors.right: leftTime.left
+                anchors.rightMargin: wordSpacing * 2
                 anchors.bottom: leftTime.bottom
             }
 
