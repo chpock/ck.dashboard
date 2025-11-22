@@ -391,7 +391,7 @@ Singleton {
             cursorInfoNetwork = data.cursor
             const callbackData = {
                 rxrate: rxAvgNetworkRate.push(Math.trunc(data.interfaces[0].rxrate)),
-                txrate: rxAvgNetworkRate.push(Math.trunc(data.interfaces[0].rxrate)),
+                txrate: txAvgNetworkRate.push(Math.trunc(data.interfaces[0].txrate)),
             }
             root.updateInfoNetwork(callbackData)
         })
