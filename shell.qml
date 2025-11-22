@@ -53,6 +53,9 @@ ShellRoot {
                     Layout.fillHeight: true
                 }
 
+                Widget.Buttons {
+                }
+
                 Widget.AudioVolume {
                 }
 
