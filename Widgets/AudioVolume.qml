@@ -23,6 +23,12 @@ Base {
                 property int bottom: 0
             }
         }
+        readonly property var name: QtObject {
+            readonly property var color: QtObject {
+                property color normal: Theme.text.color.grey
+                property color hover: Theme.text.color.normal
+            }
+        }
     }
 
     Repeater {
@@ -111,7 +117,12 @@ Base {
             E.Text {
                 id: name
                 text: parent.description
-                color: parent.isAvailable ? undefined : Theme.color.error
+                color:
+                    !parent.isAvailable
+                        ? Theme.color.error
+                        : itemHover.hovered
+                            ? root.theme.name.color.hover
+                            : root.theme.name.color.normal
                 anchors.rightMargin: wordSpacing
                 anchors.right: volumeObj.left
                 anchors.left: parent.hasIconSecond ? iconSecond.right : icon.right
@@ -144,6 +155,7 @@ Base {
             }
 
             HoverHandler {
+                id: itemHover
                 acceptedButtons: Qt.NoButton
                 cursorShape: Qt.PointingHandCursor
             }
