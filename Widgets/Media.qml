@@ -178,7 +178,6 @@ Base {
                         }
                     }
                     HoverHandler {
-                        id: statusHovered
                         enabled: Provider.Mpris.hasPlayer
                         acceptedButtons: Qt.NoButton
                         cursorShape: Qt.PointingHandCursor
