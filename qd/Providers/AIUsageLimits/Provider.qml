@@ -78,37 +78,52 @@ Scope {
             latestProvidersDirty = true
         }
 
+        const accountsCountMap = providersData.reduce((acc, item) => {
+            acc[item.id] = (acc[item.id] || 0) + 1
+            return acc
+        }, {})
+
         for (let i = 0; i < providersData.length; ++i) {
 
             const providerData = providersData[i]
 
-            const previousLines =
-                root.latestProvidersLines.hasOwnProperty(providerData.id)
-                    ? root.latestProvidersLines[providerData.id]
-                    : []
+            const providerAccountKey = providerData.id + '#' + providerData.account.id
 
             const modelData = {
+                accountKey: providerAccountKey,
                 id: providerData.id,
                 displayName: providerData.displayName,
                 plan: providerData.plan ?? '',
                 error: providerData.error ?? '',
+                accountName: providerData.account.name ?? providerData.account.id,
+                accountIsActive: providerData.account.isActive ?? true,
+                accountIsSingle: accountsCountMap[providerData.id] == 1,
             }
 
-            currentLatestProviders.push({
-                id: providerData.id,
-                displayName: providerData.displayName,
-            })
+            const previousLines =
+                root.latestProvidersLines.hasOwnProperty(providerAccountKey)
+                    ? root.latestProvidersLines[providerAccountKey]
+                    : []
+
             if (root.latestProviders.length <= i) {
                 latestProvidersDirty = true
                 latestProvidersLinesDirty = true
             } else {
                 const latestProviderItem = root.latestProviders[i]
-                if (latestProviderItem.id !== providerData.id || latestProviderItem.displayName !== providerData.displayName) {
+                if (
+                    latestProviderItem.id !== modelData.id ||
+                    latestProviderItem.displayName !== modelData.displayName ||
+                    latestProviderItem.accountName !== modelData.accountName ||
+                    latestProviderItem.accountIsActive !== modelData.accountIsActive ||
+                    latestProviderItem.accountIsSingle !== modelData.accountIsSingle
+                ) {
                     latestProvidersDirty = true
                     latestProvidersLinesDirty = true
                     modelData.lines = []
                 }
             }
+
+            currentLatestProviders.push(modelData)
 
             if (i < providersModelObj.count) {
                 providersModelObj.set(i, modelData)
@@ -169,12 +184,12 @@ Scope {
                     linesModel.remove(lines.length, linesModel.count - lines.length)
                 }
 
-                currentLatestProvidersLines[providerData.id] = currentLines
+                currentLatestProvidersLines[providerAccountKey] = currentLines
 
-            } else if (root.latestProvidersLines.hasOwnProperty(providerData.id)) {
-                currentLatestProvidersLines[providerData.id] = root.latestProvidersLines[providerData.id]
+            } else if (root.latestProvidersLines.hasOwnProperty(providerAccountKey)) {
+                currentLatestProvidersLines[providerAccountKey] = root.latestProvidersLines[providerAccountKey]
             } else {
-                currentLatestProvidersLines[providerData.id] = []
+                currentLatestProvidersLines[providerAccountKey] = []
                 latestProvidersLinesDirty = true
             }
         }
@@ -230,14 +245,19 @@ Scope {
                 for (let i = 0; i < currentLatestProviders.length; ++i) {
 
                     const providerData = currentLatestProviders[i]
-                    const lines = currentLatestProvidersLines[providerData.id]
+                    const providerAccountKey = providerData.accountKey ?? ''
+                    const lines = currentLatestProvidersLines[providerAccountKey] ?? []
                     const mainLineIndex = root.getMainLineIndex(lines)
 
                     const modelData = {
+                        accountKey: providerAccountKey,
                         id: providerData.id,
                         displayName: providerData.displayName,
                         plan: '',
                         error: 'Not initialized',
+                        accountName: providerData.accountName ?? '',
+                        accountIsActive: providerData.accountIsActive ?? true,
+                        accountIsSingle: providerData.accountIsSingle ?? true,
                         lines: [],
                     }
                     providersModelObj.append(modelData)

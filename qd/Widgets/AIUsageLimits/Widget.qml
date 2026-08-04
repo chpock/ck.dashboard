@@ -177,13 +177,25 @@ Widget.Base {
             plan.implicitHeight,
         ) + column.implicitHeight
 
+        E.Text {
+            id: active_indicator
+            theme: root._theme
+            config: provider.config.active_indicator
+
+            anchors.left: parent.left
+            anchors.bottom: title.bottom
+
+            style: modelData.accountIsActive ? 'active' : 'inactive'
+            visible: !modelData.accountIsSingle
+        }
+
         E.TextTitle {
             id: title
             theme: root._theme
             config: provider.config.title
 
             text: parent.modelData.displayName
-            anchors.left: parent.left
+            anchors.left: active_indicator.visible ? active_indicator.right : parent.left
         }
 
         E.Text {
@@ -199,7 +211,17 @@ Widget.Base {
                         : ''
             style: parent.modelData.error ? 'error' : null
             anchors.left: title.right
+        }
+
+        E.Text {
+            id: account
+            theme: root._theme
+            config: provider.config.account
+
             anchors.right: parent.right
+            anchors.bottom: plan.bottom
+
+            args: [parent.modelData.accountName]
         }
 
         Column {

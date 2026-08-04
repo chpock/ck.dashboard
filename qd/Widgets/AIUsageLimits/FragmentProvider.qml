@@ -26,11 +26,17 @@ C.Base {
 
     property FragmentProvider _defaults
 
+    readonly property C.Text active_indicator: C.Text {
+        _defaults: root._defaults?.active_indicator ?? null
+    }
     readonly property C.TextTitle title: C.TextTitle {
         _defaults: root._defaults?.title ?? null
     }
     readonly property C.Text plan: C.Text {
         _defaults: root._defaults?.plan ?? null
+    }
+    readonly property C.Text account: C.Text {
+        _defaults: root._defaults?.account ?? null
     }
     readonly property C.Spacing spacing: C.Spacing {
         _defaults: root._defaults?.spacing ?? null

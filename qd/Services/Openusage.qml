@@ -105,6 +105,7 @@ Singleton {
         const notice = state.queryMode === 'cache' ? null : "Query mode is not 'cache': " + state.queryMode
 
         const result = data.map(provider => {
+            const providerAccount = provider.account
             const processedLines = (provider.lines || [])
                 .filter(line => {
                     return line.format && line.format.kind === 'percent' && line.resetsAt !== null;
@@ -131,10 +132,25 @@ Singleton {
                 id: provider.providerId,
                 displayName: provider.displayName,
                 plan: provider.plan,
+                account: {
+                    id: providerAccount.id,
+                    name: providerAccount.name,
+                    isActive: providerAccount.isActive,
+                },
                 lines: processedLines,
                 error: errorBadge ? errorBadge.text : null,
             }
-        }).filter(item => item.lines.length > 0 || item.error).sort((a, b) => a.id.localeCompare(b.id))
+        }).filter(item => item.lines.length > 0 || item.error).sort((a, b) => {
+            const idCompare = a.id.localeCompare(b.id)
+            if (idCompare !== 0) {
+                return idCompare
+            }
+
+            const accountNameA = (a.account && typeof a.account.name === 'string') ? a.account.name : ''
+            const accountNameB = (b.account && typeof b.account.name === 'string') ? b.account.name : ''
+
+            return accountNameA.localeCompare(accountNameB)
+        })
 
         root.closestResetData = closestResetDate
 

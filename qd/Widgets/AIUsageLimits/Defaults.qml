@@ -42,6 +42,22 @@ Fragments {
     }
 
     provider {
+        active_indicator {
+            _defaults: widget._defaults.text
+            padding {
+                right: '1ch'
+                bottom: 2
+            }
+            text: "\u25CF"
+            styles: ({
+                active: {
+                    color: 'severity/good',
+                },
+                inactive: {
+                    color: 'severity/ignore',
+                },
+            })
+        }
         title {
             _defaults: widget._defaults.text_title
             padding {
@@ -58,6 +74,17 @@ Fragments {
                     overflow: 'scroll',
                 },
             })
+        }
+        account {
+            _defaults: widget._defaults.text
+            padding {
+                left: '1ch'
+            }
+            font {
+                size: 'small'
+            }
+            color: 'text/secondary'
+            text: '(%1)'
         }
         spacing {
             vertical: 2
