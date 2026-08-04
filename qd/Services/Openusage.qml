@@ -30,6 +30,11 @@ Singleton {
     property bool running: false
     property bool openusageAvailable: false
     property var closestResetData: null
+    // When cacheMode is active, aggressive mode is always enabled because
+    // requests are very cheap in this case and can be made frequently. When cache is inactive,
+    // the regular checkTimer runs with updates every minute. Aggressive
+    // mode is enabled only when a provider update is expected soon.
+    property bool cacheMode: false
     property var providersState: null
 
     signal available()
@@ -52,7 +57,7 @@ Singleton {
     }
 
     Timer {
-        id: checkAgressiveTimer
+        id: checkAggressiveTimer
         interval: 1000 * 3
         running: false
         repeat: true
@@ -60,39 +65,41 @@ Singleton {
     }
 
     Timer {
-        id: activateAgressiveTimer
+        id: activateAggressiveTimer
         running: false
         repeat: false
         onTriggered: {
             checkProc.running = true
-            checkAgressiveTimer.start()
+            checkAggressiveTimer.start()
         }
     }
 
     onClosestResetDataChanged: {
         if (!closestResetData) {
-            activateAgressiveTimer.stop()
-            checkAgressiveTimer.stop()
+            activateAggressiveTimer.stop()
+            if (!cacheMode) {
+                checkAggressiveTimer.stop()
+            }
             return
         }
         const now = Date.now()
         const delayMs = closestResetData.getTime() - now
         if (delayMs <= 0) {
-            // console.log("START agressive check now, delay secs is negative:", delayMs / 1000)
-            activateAgressiveTimer.stop()
-            if (!checkAgressiveTimer.running) {
-                checkAgressiveTimer.start()
+            // console.log("START aggressive check now, delay secs is negative:", delayMs / 1000)
+            activateAggressiveTimer.stop()
+            if (!checkAggressiveTimer.running) {
+                checkAggressiveTimer.start()
                 checkProc.running = true
             }
         } else if (delayMs > checkTimer.interval) {
             // console.log("Delay secs is too hight:", delayMs / 1000)
-            activateAgressiveTimer.stop()
-            checkAgressiveTimer.stop()
+            activateAggressiveTimer.stop()
+            checkAggressiveTimer.stop()
         } else {
             // console.log("SCHEDULE aggressive check by delay secs:", delayMs / 1000)
-            activateAgressiveTimer.interval = delayMs
-            activateAgressiveTimer.restart()
-            checkAgressiveTimer.stop()
+            activateAggressiveTimer.interval = delayMs
+            activateAggressiveTimer.restart()
+            checkAggressiveTimer.stop()
         }
     }
 
@@ -104,6 +111,21 @@ Singleton {
 
         const notice = state.queryMode === 'cache' ? null : "Query mode is not 'cache': " + state.queryMode
 
+        if (state.queryMode === 'cache') {
+            if (!root.cacheMode) {
+                root.cacheMode = true
+                checkTimer.stop()
+                activateAggressiveTimer.stop()
+                checkAggressiveTimer.start()
+            }
+        } else {
+            if (root.cacheMode) {
+                root.cacheMode = false
+                checkTimer.start()
+                checkAggressiveTimer.stop()
+            }
+        }
+
         const result = data.map(provider => {
             const providerAccount = provider.account
             const processedLines = (provider.lines || [])
@@ -113,8 +135,12 @@ Singleton {
                 .map(line => {
                     const resetDate = new Date(line.resetsAt);
 
-                    if (closestResetDate === null || resetDate < closestResetDate) {
-                        closestResetDate = resetDate
+                    // We don't need closestResetDate in the cache mode as in this mode the aggressive
+                    // check is always on.
+                    if (!root.cacheMode) {
+                        if (closestResetDate === null || resetDate < closestResetDate) {
+                            closestResetDate = resetDate
+                        }
                     }
 
                     return {
