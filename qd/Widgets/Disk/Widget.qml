@@ -23,11 +23,13 @@ import QtQuick
 import qs.qd.Elements as E
 import qs.qd.Widgets as Widget
 import qs.qd.Providers as Provider
+import "filter.js" as DiskFilter
 
 Widget.Base {
     id: root
 
     readonly property var providerDisk: Provider.Disk.instance
+    property var exclude
 
     _fragments: Fragments {
         _defaults: Defaults {
@@ -48,6 +50,7 @@ Widget.Base {
     component Mount: Column {
         id: mount
         spacing: 0
+        visible: !DiskFilter.isExcluded(modelData, root.exclude)
 
         property bool isCompact: false
         readonly property var config: root._fragments.mount

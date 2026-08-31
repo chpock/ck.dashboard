@@ -61,6 +61,25 @@ Currently available components:
    ./bin/quickdashboard
    ```
 
+## Disk mount filtering
+
+The `Disk` widget can hide mount entries by filesystem type and/or mount point:
+
+```qml
+W.Disk {
+    exclude: ({
+        fstype: ["tmpfs", "overlay"],
+        mount: ["/run/*", "/mnt/?"],
+    })
+}
+```
+
+Each list contains case-sensitive glob patterns matched against the complete value. `*` matches any sequence of characters, including `/`, and `?` matches one character. An entry is hidden when either its `fstype` or its mount point matches any configured pattern. Missing or empty lists do not filter that field.
+
+To change the filter at runtime, assign a new `exclude` object rather than mutating its arrays in place.
+
+Disk read and write rates remain system-wide because they are aggregated across all disks.
+
 ## Feedback
 
 Feedback, ideas, and feature suggestions are very welcome!
