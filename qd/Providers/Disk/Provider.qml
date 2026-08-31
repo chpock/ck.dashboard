@@ -23,6 +23,7 @@ import Quickshell
 import QtQuick
 import qs.qd.Services as Service
 import qs.qd as QD
+import "state.js" as DiskState
 
 Scope {
     id: root
@@ -41,22 +42,12 @@ Scope {
 
     Component.onCompleted: {
         if (root.hasService) {
-            const persistedStateCount = mountModelObj.getStateCount()
+            const stateEntries = mountModelObj.getStateEntries()
 
             if (!root.mountModelList.length) {
-                let stateCount = persistedStateCount
-                const sampleData = {
-                    device: '',
-                    mount:  '',
-                    fstype: '',
-                    size:  0,
-                    used:  0,
-                    avail: 0,
-                }
-                const initialCount = mountModelObj.count
-                while (stateCount-- > initialCount) {
-                    mountModelObj.append(sampleData)
-                    root.mountModelList.push('')
+                for (const entry of stateEntries) {
+                    mountModelObj.append(DiskState.placeholder(entry))
+                    root.mountModelList.push(entry.mount)
                 }
             }
 
@@ -65,11 +56,9 @@ Scope {
             root.syncInfoDisk(Service.Dgop.infoDisk)
             root.syncInfoMounts(Service.Dgop.infoMounts)
 
-            mountModelObj.stateCountInitialized = true
-            if (mountModelObj.realCountKnown) {
-                if (persistedStateCount < 0 || persistedStateCount !== mountModelObj.count) {
-                    mountModelObj.setStateCount()
-                }
+            mountModelObj.stateInitialized = true
+            if (mountModelObj.liveMountDataKnown) {
+                mountModelObj.setState()
             }
         }
     }
@@ -94,7 +83,7 @@ Scope {
         if (!data) {
             return
         }
-        mountModelObj.realCountKnown = true
+        mountModelObj.liveMountDataKnown = true
         const foundMounts = []
         for (let item of data) {
             const mount = item.mount
@@ -114,6 +103,9 @@ Scope {
             }
             root.mountModelList = foundMounts
         }
+        if (mountModelObj.stateInitialized) {
+            mountModelObj.setState()
+        }
     }
 
     Connections {
@@ -130,27 +122,47 @@ Scope {
     ListModel {
         id: mountModelObj
 
-        property bool stateCountInitialized: false
-        property bool realCountKnown: false
-        readonly property string stateCountKey: 'Provider.Disk.ListModel.count'
+        property bool stateInitialized: false
+        property bool liveMountDataKnown: false
+        property string persistedStateEntries: ''
+        readonly property string stateEntriesKey: 'Provider.Disk.ListModel.entries'
 
-        function getStateCount() {
+        function getStateEntries() {
+            persistedStateEntries = QD.Settings.stateGet(stateEntriesKey, '')
+            const entries = DiskState.parseEntries(persistedStateEntries)
+            if (entries !== null) {
+                return entries
+            }
+
+            // Legacy count-only state fallback. Remove this block once all caches contain entries state.
+            const stateCountKey = 'Provider.Disk.ListModel.count'
             let stateCount = Number(QD.Settings.stateGet(stateCountKey, -1))
             if (!Number.isFinite(stateCount) || stateCount < 0) {
-                return -1
+                return []
             }
-            return Math.trunc(stateCount)
+
+            stateCount = Math.trunc(stateCount)
+            const legacyEntries = []
+            while (legacyEntries.length < stateCount) {
+                legacyEntries.push({
+                    device: '',
+                    mount: '',
+                    fstype: '',
+                })
+            }
+            return legacyEntries
         }
 
-        function setStateCount() {
-            QD.Settings.stateSet(stateCountKey, count)
-        }
-
-        onCountChanged: {
-            if (!root.hasService || !stateCountInitialized || !realCountKnown) {
-                return
+        function setState() {
+            const entries = []
+            for (let i = 0; i < count; ++i) {
+                entries.push(DiskState.identity(get(i)))
             }
-            setStateCount()
+            const entriesJson = JSON.stringify(entries)
+            if (entriesJson !== persistedStateEntries) {
+                QD.Settings.stateSet(stateEntriesKey, entriesJson)
+                persistedStateEntries = entriesJson
+            }
         }
     }
 
